@@ -1,0 +1,7 @@
+{
+  "name": "Easing Gradients",
+  "id": "907899097995668330",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/index.html"
+}

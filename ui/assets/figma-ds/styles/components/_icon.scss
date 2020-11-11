@@ -1,0 +1,137 @@
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  width: var(--size-medium);
+  height: var(--size-medium);
+  font-family: var(--font-stack);
+  font-size: var(--font-size-xsmall);
+  user-select: none;
+  background-position: -2px -1px;
+
+  //rotate the icon in an infinit loop, ex: for a spinner
+  &--spin {
+    animation: rotating 1s linear infinite;
+  }
+  @keyframes rotating {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  //color modifiers
+
+  //blue
+  &--blue {
+    filter: invert(54%) sepia(16%) saturate(7499%) hue-rotate(179deg)
+      brightness(98%) contrast(101%);
+  }
+
+  &--purple {
+    filter: invert(40%) sepia(59%) saturate(4001%) hue-rotate(232deg)
+      brightness(103%) contrast(102%);
+  }
+
+  &--purple4 {
+    filter: invert(72%) sepia(40%) saturate(660%) hue-rotate(202deg)
+      brightness(103%) contrast(103%);
+  }
+
+  &--hot-pink {
+    filter: invert(18%) sepia(90%) saturate(3347%) hue-rotate(293deg)
+      brightness(116%) contrast(132%);
+  }
+
+  &--green {
+    filter: invert(66%) sepia(39%) saturate(5382%) hue-rotate(114deg)
+      brightness(102%) contrast(79%);
+  }
+
+  &--red {
+    filter: invert(43%) sepia(56%) saturate(5632%) hue-rotate(349deg)
+      brightness(97%) contrast(95%);
+  }
+
+  &--yellow {
+    filter: invert(78%) sepia(86%) saturate(1608%) hue-rotate(1deg)
+      brightness(107%) contrast(104%);
+  }
+
+  &--black {
+    filter: invert(0%) sepia(0%) saturate(7500%) hue-rotate(117deg)
+      brightness(109%) contrast(105%);
+  }
+
+  &--black8 {
+    filter: invert(0%) sepia(56%) saturate(25%) hue-rotate(137deg)
+      brightness(105%) contrast(60%);
+  }
+
+  &--black3 {
+    filter: invert(100%) sepia(0%) saturate(698%) hue-rotate(219deg)
+      brightness(66%) contrast(127%);
+  }
+
+  &--white {
+    filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(269deg)
+      brightness(103%) contrast(104%);
+  }
+
+  &--white8 {
+    filter: invert(99%) sepia(2%) saturate(5%) hue-rotate(55deg)
+      brightness(104%) contrast(98%);
+  }
+
+  &--white4 {
+    filter: invert(99%) sepia(2%) saturate(897%) hue-rotate(245deg)
+      brightness(117%) contrast(93%);
+  }
+
+  //icons
+  &--hidden {
+    background-image: url('../icons/hidden.svg');
+  }
+  &--visible {
+    background-image: url('../icons/visible.svg');
+  }
+
+  // Custom
+
+  &--ease-in-out {
+    background-image: url('../icons/custom/ease-in-out.svg');
+  }
+  &--ease-in {
+    background-image: url('../icons/custom/ease-in.svg');
+  }
+  &--ease-out {
+    background-image: url('../icons/custom/ease-out.svg');
+  }
+  &--ease {
+    background-image: url('../icons/custom/ease.svg');
+  }
+  &--custom-ease {
+    background-image: url('../icons/custom/custom-ease.svg');
+  }
+  &--steps {
+    background-image: url('../icons/custom/steps.svg');
+  }
+  &--steps-skip-start {
+    background-image: url('../icons/custom/steps-skip-start.svg');
+  }
+  &--steps-skip-end {
+    background-image: url('../icons/custom/steps-skip-end.svg');
+  }
+  &--steps-skip-both {
+    background-image: url('../icons/custom/steps-skip-both.svg');
+  }
+  &--hint--white {
+    background-image: url('../icons/custom/hint--white.svg');
+  }
+  &--hint--black {
+    background-image: url('../icons/custom/hint--black.svg');
+  }
+}
