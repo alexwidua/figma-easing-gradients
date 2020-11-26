@@ -32,16 +32,19 @@
         :style="linearGradient"
       />
     </div>
-    <!-- <Hint
-      :hasColorStops="hasColorStops"
-      :colorStops="colorStops"
-      :selectionLength="selectionLength"
-    /> -->
     <Hint :visible="!hasColorStops">No gradient shape selected.</Hint>
-    <Hint :visible="colorStops.numStops > 2" isWarning minimize
+    <Hint
+      v-if="colorStops.numStops > 2 && hasColorStops"
+      :visible="colorStops.numStops > 2"
+      isWarning
+      minimize
       >Only the first and last color stop is considered.</Hint
     >
-    <Hint :visible="selectionLength > 1" isWarning minimize
+    <Hint
+      v-if="selectionLength > 1"
+      :visible="selectionLength > 1"
+      isWarning
+      minimize
       >Easing will be applied to multiple shapes.</Hint
     >
   </div>
@@ -78,7 +81,7 @@ export default Vue.extend({
   },
   props: {
     handles: Object as PropType<Record<string, Record<string, number>>>,
-    steps: Number as PropType<number>,
+    steps: [Number, String],
     skips: {
       type: String as PropType<string>,
       default: 'skip-none'
@@ -173,7 +176,7 @@ export default Vue.extend({
       position: absolute;
       border-radius: var(--border-radius-med);
       background: url('./../assets/checkered.svg');
-      background-size: 16px;
+      background-size: 20px;
     }
 
     &--linear {

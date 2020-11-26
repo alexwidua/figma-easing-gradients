@@ -175,7 +175,7 @@ export default Vue.extend({
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px var(--black2) solid;
+    border: 1px var(--black1) solid;
     border-radius: var(--border-radius-med);
   }
 
@@ -183,7 +183,7 @@ export default Vue.extend({
     width: 100%;
     height: 100%;
     position: relative;
-    border: 2px var(--grey) solid;
+    border: 2px var(--bg-grey) solid;
     border-radius: var(--border-radius-small);
     user-select: none;
   }
@@ -202,12 +202,12 @@ export default Vue.extend({
   stroke: var(--black);
 
   &--backdrop {
-    stroke: var(--grey);
+    stroke: var(--bg-grey);
   }
 }
 
 .rect {
-  stroke: var(--silver);
+  stroke: var(--bg-silver);
   stroke-width: 1px;
 }
 </style>

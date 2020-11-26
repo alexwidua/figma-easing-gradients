@@ -1,44 +1,51 @@
 <template>
   <div id="app">
-    <div class="grid fr-fr mt-xxsmall mb-xxsmall">
+    <div class="flex mt-xxsmall mb-xxsmall">
       <!-- easing function select -->
-      <Select
+      <FigSelect
+        style="width:50%;"
         :items="[
-          { text: 'Curve', key: 'curve', icon: 'ease-in-out' },
-          { text: 'Steps', key: 'steps', icon: 'steps' }
+          { label: 'Curve', key: 'curve', icon: 'ease-in-out' },
+          { label: 'Steps', key: 'steps', icon: 'steps' }
         ]"
         :value="editor.type"
         v-on:input="handleEaseTypeSelect"
       />
       <!-- ease timing/steps select -->
-      <Select
+      <FigSelect
         v-if="editor.type == 'curve'"
+        style="width:50%;"
         :items="[
           {
-            text: 'Ease In Out',
+            label: 'Ease In Out',
             key: 'ease-in-out',
             icon: 'ease-in-out'
           },
-          { text: 'Ease In', key: 'ease-in', icon: 'ease-in' },
-          { text: 'Ease Out', key: 'ease-out', icon: 'ease-out' },
-          { text: 'Ease', key: 'ease', icon: 'ease' },
+          { label: 'Ease In', key: 'ease-in', icon: 'ease-in' },
+          { label: 'Ease Out', key: 'ease-out', icon: 'ease-out' },
+          { label: 'Ease', key: 'ease', icon: 'ease' },
           { divider: true },
-          { text: 'Custom', key: 'custom', icon: 'custom-ease' }
+          { label: 'Custom', key: 'custom', icon: 'custom-ease' }
         ]"
         :value="curve.ease"
         v-on:input="handleCurveEaseMapSelect"
       />
-      <Select
+      <FigSelect
         v-else
+        style="width:50%;"
         :items="[
-          { text: 'Skip None', key: 'skip-none', icon: 'steps' },
+          { label: 'Skip None', key: 'skip-none', icon: 'steps' },
           {
-            text: 'Skip First Step',
+            label: 'Skip First Step',
             key: 'skip-start',
             icon: 'steps-skip-start'
           },
-          { text: 'Skip Last Step', key: 'skip-end', icon: 'steps-skip-end' },
-          { text: 'Skip Both Steps', key: 'skip-both', icon: 'steps-skip-both' }
+          { label: 'Skip Last Step', key: 'skip-end', icon: 'steps-skip-end' },
+          {
+            label: 'Skip Both Steps',
+            key: 'skip-both',
+            icon: 'steps-skip-both'
+          }
         ]"
         :value="steps.skipSteps"
         v-on:input="handleSkipSelect"
@@ -53,25 +60,34 @@
       v-on:onEmitChild="handleMouseDown"
     />
     <!-- value input + hint toggle -->
-    <div class="flex justify-content-between">
-      <div class="input">
-        <input
+    <div class="flex align-items-center justify-content-between">
+      <div>
+        <FigInput
           v-if="editor.type == 'curve'"
-          class="input input__field mt-xxsmall mb-xxsmall"
-          v-model.lazy="curveInput"
+          :key="componentKey.curveInput"
+          :value="curveGetter"
+          @change="curveSetter"
         />
-        <input
+        <FigInput
           v-if="editor.type == 'steps'"
-          class="input input__field mt-xxsmall mb-xxsmall"
-          v-model.lazy="stepInput"
+          :key="componentKey.stepInput"
+          :value="stepGetter"
+          @change="stepSetter"
         />
       </div>
-      <div class="toggle-container">
-        <div class="toggle" @click="toggleLinearPreview">
-          <span v-if="showLinear" class="icon icon--visible" />
-          <span v-else class="icon icon--hidden" />
-        </div>
-        <span class="label" v-html="`Linear easing`" />
+      <div class="flex align-items-center mt-xxsmall mb-xxsmall">
+        <FigIconButton
+          :icon="showLinear ? 'visible' : 'hidden'"
+          @click="toggleLinearPreview"
+        />
+        <FigText
+          size="xsmall"
+          class="ml-xxxsmall mr-xxsmall"
+          style="cursor:default; user-select: none;"
+          @click.native="toggleLinearPreview"
+        >
+          Linear easing
+        </FigText>
       </div>
     </div>
     <Preview
@@ -86,20 +102,15 @@
     />
     <!-- Toggle linear comparison + buttons -->
     <div class="flex justify-content-end mt-xxsmall">
-      <div class="flex">
-        <button
-          class="button button--secondary"
-          type="button"
-          @click="cancel"
-          v-html="`Cancel`"
-        />
-        <button
-          class="button button--primary ml-xxsmall"
-          type="button"
+      <div class="flex" style="width:100%">
+        <FigButton
+          style="width:100%"
           @click="create"
-          v-html="`Apply`"
+          primary
           :disabled="!hasColorStops"
-        />
+        >
+          Apply
+        </FigButton>
       </div>
     </div>
   </div>
@@ -109,13 +120,17 @@
 import Vue from 'vue';
 // Helpers
 import { easeMap } from './helpers/easeMap';
-import { throttle } from './helpers/utils';
-import { isNumber } from './helpers/utils';
+import { throttle, isNumber } from './helpers/utils';
 // Components
+import {
+  FigInput,
+  FigSelect,
+  FigButton,
+  FigIconButton,
+  FigText
+} from 'figma-plugin-ds-vue';
 import Editor from '@/components/Editor/Editor.vue';
 import Preview from '@/components/GradientPreview.vue';
-// Figma-DS
-import Select from '@/components/FigmaDs/Select.vue';
 
 // Typings
 interface Handles {
@@ -152,12 +167,22 @@ export default Vue.extend({
         stop2: { r: 0, g: 0, b: 0, a: 0 },
         numStops: 2
       },
-      selectionLength: 0
+      selectionLength: 0,
+      componentKey: {
+        // since $forceUpdate doesn't update children, we force a re-render
+        // by changing the key (e.g. if a wrong value is entered)
+        curveInput: 0,
+        stepInput: 0
+      }
     };
   },
   components: {
+    FigInput,
+    FigSelect,
+    FigButton,
+    FigIconButton,
+    FigText,
     Editor,
-    Select,
     Preview
   },
   methods: {
@@ -306,15 +331,54 @@ export default Vue.extend({
         },
         '*'
       );
+    },
+    /**
+     * Input setters
+     * Since v-model.lazy isn't supported on child components, we have to
+     * seperate getters and setters...
+     */
+    curveSetter(value: string): void {
+      const split = value.split(',');
+      if (!split.every(isNumber) || split.length !== 4) {
+        // force component re-render by changing key
+        this.componentKey.curveInput += 1;
+        return;
+      }
+      // make sure number is between 0,0 .. 1,0
+      if (!split.every(el => parseFloat(el) <= 1 && parseFloat(el) >= 0)) {
+        this.componentKey.curveInput += 1;
+        return;
+      }
+      this.curve.ease = 'custom';
+      this.handles.handle1.x = parseFloat(split[0]);
+      this.handles.handle1.y = parseFloat(split[1]);
+      this.handles.handle2.x = parseFloat(split[2]);
+      this.handles.handle2.y = parseFloat(split[3]);
+    },
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
+    stepSetter(value: any): void {
+      if (!isNumber(value)) {
+        this.componentKey.stepInput += 1;
+        return;
+      }
+      if (value.split(' ').length > 1) {
+        this.componentKey.stepInput += 1;
+        return;
+      }
+      if (value <= 1 || value > 96) {
+        this.componentKey.stepInput += 1;
+        return;
+      }
+      this.steps.numSteps = value;
     }
   },
   computed: {
     /**
-     * V-models
+     * Input getters
+     * Since v-model.lazy isn't supported on child components, we have to
+     * seperate getters and setters...
      */
-    // handle curve value input
-    curveInput: {
-      // handles what is being displayed back in the input field
+    curveGetter: {
       get(): string {
         // format the curve ease values for better legibility
         return (
@@ -326,46 +390,11 @@ export default Vue.extend({
           ', ' +
           this.handles.handle2.y.toFixed(2)
         );
-      },
-      // handles what gets entered in the input field
-      set(value: string): void {
-        const split = value.split(',');
-        // make sure the entered value is a number
-        if (!split.every(isNumber) || split.length !== 4) {
-          // TODO: Error notify message here
-          this.$forceUpdate();
-          return;
-        }
-        // make sure number is between 0,0 .. 1,0
-        if (!split.every(el => parseFloat(el) <= 1 && parseFloat(el) >= 0)) {
-          // TODO: Error notify message here
-          this.$forceUpdate();
-          return;
-        }
-        this.handles.handle1.x = parseFloat(split[0]);
-        this.handles.handle1.y = parseFloat(split[1]);
-        this.handles.handle2.x = parseFloat(split[2]);
-        this.handles.handle2.y = parseFloat(split[3]);
       }
     },
-    // handle step value input
-    stepInput: {
+    stepGetter: {
       get(): number {
         return this.steps.numSteps;
-      },
-      set(value: number): void {
-        // make sure the entered value is a number
-        if (!isNumber(value)) {
-          // TODO: Error notify message here
-          this.$forceUpdate();
-          return;
-        }
-        if (value <= 1 || value > 96) {
-          // TODO: Error notify message here
-          this.$forceUpdate();
-          return;
-        }
-        this.steps.numSteps = value;
       }
     }
   },
@@ -390,41 +419,5 @@ export default Vue.extend({
   -moz-osx-font-smoothing: grayscale;
   width: var(--editorWidth);
   margin: 0 auto;
-}
-
-/**
- *  misc
- */
-
-.--inactive {
-  opacity: 0.3;
-  transition: opacity 0.2s;
-
-  &:hover {
-    opacity: 1;
-  }
-}
-
-// linear easing preview toggle
-.toggle {
-  border-radius: var(--border-radius-small);
-
-  &-container {
-    height: 46px;
-    display: flex;
-    align-items: center;
-
-    & .label {
-      padding-left: 2px;
-      padding-right: 10px;
-    }
-  }
-  & .icon {
-    background-position: center !important;
-  }
-
-  &:hover {
-    background: var(--grey);
-  }
 }
 </style>

@@ -4,7 +4,7 @@ import App from './App.vue';
 // global app styling
 import './assets/app.scss';
 // import figma design system
-import './assets/figma-ds/styles/index.scss';
+import 'figma-plugin-ds-vue/dist/figma-plugin-ds-vue.css';
 
 Vue.config.productionTip = false;
 
