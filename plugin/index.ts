@@ -3,7 +3,7 @@ import { easeGradient } from './helpers/gradient';
 
 figma.showUI(__html__, {
   width: 316,
-  height: 592
+  height: 597
 });
 
 /**
