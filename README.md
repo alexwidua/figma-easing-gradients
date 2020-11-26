@@ -37,8 +37,7 @@ Wrapping this up I'm grateful for Andreas Larsen for putting out his work on [ea
 
 ## 🌀 Misc
 
-This plugin has modified [figma-plugin-ds](https://github.com/thomas-lowry/figma-plugin-ds) components & stylesheets included.
-The Figma-ds select component is a fork from [figma-vue-boilerplate](https://github.com/Morglod/figma-vue-boilerplate).
+This plugin uses the [figma-plugin-ds-vue](https://github.com/alexwidua/figma-plugin-ds-vue) library.
 
 ## 📝 License
 
