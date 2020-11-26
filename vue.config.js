@@ -20,8 +20,7 @@ module.exports = {
     // Encode svg assets as base64 for Figma since
     // resources have to be embedded:
     // https://www.figma.com/plugin-docs/resource-links/
-    const svgRule = config.module.rule('svg');
-    svgRule.uses.clear();
+    config.module.rule('svg').uses.clear();
     config.module
       .rule('svg')
       .test(/\.(png|jpg|gif|webp|svg)$/)
@@ -32,7 +31,7 @@ module.exports = {
     plugins: [
       new HtmlWebpackPlugin({
         template: './ui/index.html',
-        filename: 'index.html',
+        filename: 'ui.html',
         inlineSource: '.(js)$',
         chunks: ['ui']
       }),
@@ -51,5 +50,9 @@ module.exports = {
       filename: '[name].js',
       chunkFilename: '[name].js'
     }
+  },
+  // Serve devServer to ui.hmtl instead of /index.html
+  devServer: {
+    index: 'ui.html'
   }
 };
