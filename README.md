@@ -4,6 +4,8 @@ Allows easing of gradient fills in Figma using custom cubic-bézier or step easi
 
 This plugin is based on the great [work of Andreas Larsen](https://larsenwork.com/easing-gradients/) and should be seen as a fork of Andreas' [Sketch plugin](https://github.com/larsenwork/sketch-easing-gradient).
 
+[<img src="misc/button.svg">](https://www.figma.com/community/plugin/907899097995668330/Easing-Gradients)
+
 ## ✨ Usage
 
 1. Go to _Plugins > Easing Gradients_
