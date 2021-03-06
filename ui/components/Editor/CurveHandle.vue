@@ -74,6 +74,7 @@ export default Vue.extend({
   background: var(--black);
   border: 2px solid var(--white);
   border-radius: 100%;
+  cursor: grab;
   transform: translate(-50%, -50%);
 
   &--zero {
@@ -83,6 +84,7 @@ export default Vue.extend({
 
   &--active {
     background: var(--blue);
+    cursor: grabbing;
   }
 
   &--border-override {
