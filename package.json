@@ -12,6 +12,7 @@
     "core-js": "^3.6.5",
     "easing-coordinates": "^2.0.2",
     "figma-plugin-ds-vue": "^1.1.7",
+    "firebase": "^8.2.10",
     "vue": "^2.6.11"
   },
   "devDependencies": {

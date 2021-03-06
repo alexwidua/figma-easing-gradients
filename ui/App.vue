@@ -1,5 +1,12 @@
 <template>
-  <div id="app">
+  <div
+    id="app"
+    ref="app"
+    @click="collectEvent"
+    :style="
+      editor.selectedHandle.length > 0 ? 'cursor: grabbing' : 'cursor: default'
+    "
+  >
     <div class="flex mt-xxsmall mb-xxsmall">
       <!-- easing function select -->
       <FigSelect
@@ -104,7 +111,14 @@
     <div class="flex justify-content-end mt-xxsmall">
       <div class="flex" style="width:100%">
         <FigButton
-          style="width:100%"
+          style="width:30%; margin-right: 3%;"
+          @click="cancel"
+          secondary
+        >
+          Cancel
+        </FigButton>
+        <FigButton
+          style="width:67%"
           @click="create"
           primary
           :disabled="!hasColorStops"
@@ -117,6 +131,14 @@
 </template>
 
 <script lang="ts">
+//
+//
+// This is a temporary version which collects the plugins click events to get
+// some insights into the UX of Figma plugins.
+//
+//
+import fire from './store/fire';
+
 import Vue from 'vue';
 // Helpers
 import { easeMap } from './helpers/easeMap';
@@ -173,7 +195,10 @@ export default Vue.extend({
         // by changing the key (e.g. if a wrong value is entered)
         curveInput: 0,
         stepInput: 0
-      }
+      },
+      // For analytics
+      heatMap: [],
+      sessionID: '0'
     };
   },
   components: {
@@ -297,6 +322,17 @@ export default Vue.extend({
       const steps = this.steps.numSteps;
       const skip = this.steps.skipSteps;
 
+      // For analytics
+      fire
+        .database()
+        .ref('heatmap-v2')
+        .push({
+          sessionID: this.sessionID,
+          clicks: this.heatMap,
+          easing: easeCoords,
+          action: 'apply'
+        });
+
       parent.postMessage(
         {
           pluginMessage: {
@@ -310,19 +346,26 @@ export default Vue.extend({
         '*'
       );
     },
-    // for debugging reason
-    debug() {
-      parent.postMessage(
-        {
-          pluginMessage: {
-            type: 'debug'
-          }
-        },
-        '*'
-      );
-    },
     // post cancel message ui -> plugin
     cancel() {
+      // For analytics
+      const easeCoords = {
+        x1: this.handles.handle1.x,
+        y1: this.handles.handle1.y,
+        x2: this.handles.handle2.x,
+        y2: this.handles.handle2.y
+      };
+
+      fire
+        .database()
+        .ref('heatmap-v2')
+        .push({
+          sessionID: this.sessionID,
+          clicks: this.heatMap,
+          easing: easeCoords,
+          action: 'cancel'
+        });
+
       parent.postMessage(
         {
           pluginMessage: {
@@ -370,6 +413,20 @@ export default Vue.extend({
         return;
       }
       this.steps.numSteps = value;
+    },
+    //
+    // For analytics
+    //
+    collectEvent(event: MouseEvent): void {
+      const container = this.$refs.app as Element;
+      const clientRect = container.getBoundingClientRect();
+
+      this.heatMap.push({
+        // @ts-expect-error
+        x: event.clientX - clientRect.x,
+        // @ts-expect-error
+        y: event.clientY - clientRect.y
+      });
     }
   },
   computed: {
@@ -404,6 +461,11 @@ export default Vue.extend({
     document.addEventListener('mousemove', (this as any).fnThrottle);
     document.addEventListener('mouseup', this.handleMouseUp);
     window.addEventListener('message', this.handleMsg);
+
+    // For analytics to distinguish sessions since I choose not to timestamp them
+    this.sessionID = Math.random()
+      .toString(36)
+      .substring(7);
   },
   beforeDestroy() {
     // eslint-disable-next-line

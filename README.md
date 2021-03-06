@@ -26,7 +26,7 @@ If multiple shapes are selected the same easing will be applied to all selected 
 ## 🚧 Development
 
 1. `npm install` — Install dependencies
-1. `npm run watch` — Serve the plugin (just serves the frontend) 🔧
+1. `npm run serve` — Serve the plugin (just serves the frontend) 🔧
 1. `npm run build` — Bundle the plugin for production using Vue-CLI 🚀
 
 ## 💭 Motivation
