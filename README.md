@@ -32,9 +32,9 @@ If multiple shapes are selected the same easing will be applied to all selected 
 
 ## 💭 Motivation
 
-[Matan Kushner's](https://github.com/matchai) [existing Figma plugin](https://www.figma.com/community/plugin/781591244449826498) does a great job but lacks an user interface and customizable easing functions. I took this as an opportunity to extend the plugin with this functionality.
+[Matan Kushner](https://github.com/matchai) [existing Figma plugin](https://www.figma.com/community/plugin/781591244449826498) does a great job but lacks an user interface and customizable easing functions. I took this as an opportunity to extend the plugin with this functionality.
 
-I'm grateful for [Andreas Larsen](https://github.com/larsenwork) for putting out his work on [easing gradients](https://larsenwork.com/easing-gradients/) and [Matan Kushner's](https://github.com/matchai) for creating the [easing-gradient plugin](https://github.com/matchai/figma-easing-gradient) — his project was great guidance how to tackle this project.
+I'm grateful for [Andreas Larsen](https://github.com/larsenwork) for putting out his work on [easing gradients](https://larsenwork.com/easing-gradients/) and [Matan Kushner](https://github.com/matchai) for creating the [easing-gradient plugin](https://github.com/matchai/figma-easing-gradient) — his project was a great guidance how to tackle this project.
 
 ## 🌀 Misc
 
