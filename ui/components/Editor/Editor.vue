@@ -1,6 +1,11 @@
 <template>
   <div class="editor__wrapper">
-    <div class="editor__container" draggable="false">
+    <div
+      class="editor__container"
+      :class="{ scrubbing: editor.type == 'steps' }"
+      draggable="false"
+      @mousedown="handleScrubbingDown"
+    >
       <!-- to avoid emitting events more than one parent up,
       the handle components live outside the editor component-->
       <Handle
@@ -8,18 +13,18 @@
         :selectedHandle="editor.selectedHandle"
         :handleCoords="handles"
         :curveType="editor.type"
-        v-on:onEmitGrandchild="handleEmitGrandchild"
+        @onHandleDown="(event, handle) => $emit('onHandleDown', event, handle)"
       />
       <Handle
         handle="handle2"
         :selectedHandle="editor.selectedHandle"
         :handleCoords="handles"
         :curveType="editor.type"
-        v-on:onEmitGrandchild="handleEmitGrandchild"
+        @onHandleDown="(event, handle) => $emit('onHandleDown', event, handle)"
       />
       <svg class="viewbox" viewBox="0 0 1 1" fill="none">
         <g>
-          <!-- diagonal line -->
+          <!-- Diagonal line -->
           <line
             class="path path--backdrop"
             vector-effect="non-scaling-stroke"
@@ -30,7 +35,7 @@
           />
         </g>
         <g v-if="this.editor.type == 'curve'">
-          <!-- handle1 connector -->
+          <!-- Handle1 connector -->
           <line
             class="path"
             vector-effect="non-scaling-stroke"
@@ -39,7 +44,7 @@
             :x2="this.handles.handle1.x"
             :y2="1 - this.handles.handle1.y"
           />
-          <!-- handle2 connector -->
+          <!-- Handle2 connector -->
           <line
             class="path"
             vector-effect="non-scaling-stroke"
@@ -48,7 +53,7 @@
             :x2="this.handles.handle2.x"
             :y2="1 - this.handles.handle2.y"
           />
-          <!-- bézier curve -->
+          <!-- Bézier curve -->
           <path
             class="path"
             vector-effect="non-scaling-stroke"
@@ -101,11 +106,9 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-// Packages
 import easingCoordinates from 'easing-coordinates';
 import chroma from 'chroma-js';
-// Components
-import Handle from '@/components/Editor/CurveHandle.vue';
+import Handle from '@/components/Editor/EditorHandle.vue';
 
 // Typings
 type Editor = {
@@ -131,37 +134,83 @@ type ColorStops = {
 
 export default Vue.extend({
   name: 'Editor',
-  /**
-   * Contains all svg elements and the curve handle child components.
-   */
+  data() {
+    return {
+      initialValue: 0,
+      // Step scrubbing utils
+      isMouseDown: false,
+      initialMousePos: { x: 0, y: 0 },
+      min: 2,
+      max: 100
+    };
+  },
   props: {
     editor: Object as PropType<Editor>,
     handles: Object as PropType<Handles>,
     steps: Object as PropType<Steps>,
     hasColorStops: Boolean as PropType<boolean>,
-    colorStops: Object as PropType<ColorStops>
+    colorStops: Object as PropType<ColorStops>,
+    value: Number as PropType<number>
   },
   components: {
     Handle
   },
   methods: {
-    // handle emits passed up from handle child component
-    handleEmitGrandchild(event: MouseEvent, handle: string): void {
-      this.$emit('onEmitChild', event, handle);
-    },
-    // normalize rgba value from 0..255 to 0..1 using chroma-js
+    /**
+     * Normalize rgba value from 0..255 to 0..1
+     */
     glColor(stop: Record<string, number>): string {
       return chroma.gl(stop.r, stop.g, stop.b, stop.a).hex();
+    },
+    /**
+     * Handle mouse down event for step scrubbing
+     */
+    handleScrubbingDown(e: MouseEvent) {
+      this.isMouseDown = true;
+
+      this.initialMousePos = {
+        x: e.clientX,
+        y: e.clientY
+      };
+      this.initialValue = +this.steps.numSteps;
+      document.addEventListener('mousemove', this.handleScrubbingMove);
+      document.addEventListener('mouseup', this.handleScrubbingUp);
+    },
+    handleScrubbingMove(e: MouseEvent) {
+      if (this.isMouseDown && this.editor.type == 'steps') {
+        const newVal = Math.floor(
+          this.initialValue + (e.clientX - this.initialMousePos.x) * 0.03
+        );
+        this.$emit('onStepChange', this.clamp(newVal, this.min, this.max));
+      }
+    },
+    handleScrubbingUp() {
+      this.isMouseDown = false;
+      document.removeEventListener('mousemove', this.handleScrubbingMove);
+      document.removeEventListener('mouseup', this.handleScrubbingUp);
+    },
+    /**
+     * Utility to clamp value to range
+     */
+    clamp(value: number, min: number, max: number): number {
+      if (min != undefined && max != undefined) {
+        return Math.floor(Math.min(Math.max(value, min), max));
+      } else return value;
     }
   },
   computed: {
-    // get steps for svg polyline
+    /**
+     * Compute steps for SVG polyline
+     */
     getSteps(): string {
       const coords = easingCoordinates(
         `steps(${this.steps.numSteps}, ${this.steps.skipSteps})`
       );
       return coords.map(pos => `${pos.x},${1 - pos.y}`).join(' ');
     }
+  },
+  mounted() {
+    this.initialValue = this.steps.numSteps;
   }
 });
 </script>
@@ -186,6 +235,10 @@ export default Vue.extend({
     border: 2px var(--bg-grey) solid;
     border-radius: var(--border-radius-small);
     user-select: none;
+
+    &.scrubbing {
+      cursor: w-resize !important;
+    }
   }
 }
 
