@@ -47,3 +47,69 @@ export function isShape(node: any): node is GeometryMixin {
 export function isGradient(fill: Paint): fill is GradientPaint {
   return 'gradientStops' in fill;
 }
+
+/**
+ * Returns gradient color stops
+ * @param {ReadonlyArray<SceneNode>} selection Current page selection
+ */
+export function findGradient(selection: ReadonlyArray<SceneNode>) {
+  if (selection.length) {
+    const node = selection[0] as GeometryMixin;
+    const fills = node.fills as Paint[];
+
+    if (!isShape(node)) {
+      return false;
+    }
+
+    const gradientIndex = fills.findIndex(el => isGradient(el));
+    return gradientIndex < 0 ? false : fills[gradientIndex];
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns gradient transform
+ * @param {ReadonlyArray<SceneNode>} selection Current page selection
+ */
+export function findTransform(selection: ReadonlyArray<SceneNode>) {
+  if (selection.length) {
+    const node = selection[0] as GeometryMixin;
+    const fills = node.fills as Paint[];
+
+    if (!isShape(node)) {
+      return false;
+    }
+
+    const gradientIndex = fills.findIndex(el => isGradient(el));
+
+    if (gradientIndex < 0) {
+      return false;
+    }
+
+    const firstGradient = fills[gradientIndex] as GradientPaint;
+    return firstGradient.gradientTransform;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns gradient rotation in degrees
+ * @param {ReadonlyArray<SceneNode>} selection Current page selection
+ */
+export function getRotation(selection: ReadonlyArray<SceneNode>) {
+  if (!findTransform(selection)) {
+    return 0;
+  }
+  const gradientTransform = findTransform(selection) as Transform;
+
+  // type Figma.Transform = [
+  // [a, c, tx] // [0][0]  [0][1]  [0][2]
+  // [b, d, ty] // [1][0]  [1][1]  [1][2]
+  // See: https://www.figma.com/plugin-docs/api/Transform/
+
+  const a = gradientTransform[0][0];
+  const c = gradientTransform[0][1];
+  return Math.round(Math.atan2(c, a) * (180 / Math.PI));
+}

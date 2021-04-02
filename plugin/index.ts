@@ -1,9 +1,9 @@
-import { clone, isShape, isGradient } from './helpers/utils';
+import { clone, isGradient, findGradient, getRotation } from './helpers/utils';
 import { easeGradient } from './helpers/gradient';
 
 figma.showUI(__html__, {
   width: 316,
-  height: 597
+  height: 740
 });
 
 /**
@@ -16,33 +16,19 @@ figma.showUI(__html__, {
  * @param {Paint[]} fill
  * @param {number} selectionLength Length of currentPage.selection
  */
-function postFills(hasGradient: boolean, fill = {}, selectionLength = 0) {
+function postFills(
+  hasGradient: boolean,
+  fill = {},
+  selectionLength = 0,
+  degree = 0
+) {
   figma.ui.postMessage({
     type: 'colorStops',
     hasGradient,
     fill,
-    selectionLength
+    selectionLength,
+    degree
   });
-}
-
-/**
- *
- * @param {ReadonlyArray<SceneNode>} currSelection Current page selection
- */
-function findGradient(currSelection: ReadonlyArray<SceneNode>) {
-  if (currSelection.length) {
-    const node = currSelection[0] as GeometryMixin;
-    const fills = node.fills as Paint[];
-
-    //if (!isShape(node)) return false;
-    if (!isShape(node)) {
-      return false;
-    }
-    const gradientIndex = fills.findIndex(el => isGradient(el));
-    return gradientIndex < 0 ? false : fills[gradientIndex];
-  } else {
-    return false;
-  }
 }
 
 // check page selection on plugin startup
@@ -52,7 +38,8 @@ if (figma.currentPage.selection.length) {
     : postFills(
         true,
         findGradient(figma.currentPage.selection),
-        figma.currentPage.selection.length
+        figma.currentPage.selection.length,
+        getRotation(figma.currentPage.selection)
       );
 }
 
@@ -63,7 +50,8 @@ figma.on('selectionchange', () => {
     : postFills(
         true,
         findGradient(figma.currentPage.selection),
-        figma.currentPage.selection.length
+        figma.currentPage.selection.length,
+        getRotation(figma.currentPage.selection)
       );
 });
 
@@ -100,11 +88,6 @@ figma.ui.onmessage = msg => {
         node.fills = tempNode;
       });
     });
-  }
-  // debug
-  if (msg.type === 'debug') {
-    const node = selection;
-    console.log(node);
   }
   // cancel plugin
   if (msg.type === 'cancel') {
