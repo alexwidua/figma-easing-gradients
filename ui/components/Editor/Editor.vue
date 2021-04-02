@@ -78,10 +78,10 @@
             "
             class="rect"
             vector-effect="non-scaling-stroke"
-            x="-0.03"
-            y="0.97"
-            width="0.06"
-            height="0.06"
+            x="-0.015"
+            y="0.985"
+            width="0.03"
+            height="0.03"
             rx="0.015"
             ry="0.015"
           />
@@ -91,10 +91,10 @@
             "
             class="rect"
             vector-effect="non-scaling-stroke"
-            x="0.97"
-            y="-0.03"
-            width="0.06"
-            height="0.06"
+            x="0.985"
+            y="-0.015"
+            width="0.03"
+            height="0.03"
             rx="0.015"
             ry="0.015"
           />
@@ -237,7 +237,7 @@ export default Vue.extend({
     user-select: none;
 
     &.scrubbing {
-      cursor: w-resize !important;
+      cursor: ew-resize !important;
     }
   }
 }
