@@ -244,8 +244,8 @@ export default Vue.extend({
     }
 
     &.compare {
-      width: calc(var(--editorWidth) - 200px);
-      height: calc(var(--editorWidth) - 200px);
+      width: calc(var(--editorWidth) - 150px);
+      height: calc(var(--editorWidth) - 150px);
     }
 
     &__text {
@@ -257,24 +257,24 @@ export default Vue.extend({
       &--left {
         opacity: 1;
         &.compare {
-          transform: translateX(-60px) translateY(-74px);
+          transform: translateX(-52px) translateY(-67px);
           opacity: 1;
         }
 
         &.default {
-          transform: translateX(-60px) translateY(-44px);
+          transform: translateX(-52px) translateY(-44px);
           opacity: 0;
         }
       }
 
       &--right {
         &.compare {
-          transform: translateX(60px) translateY(-74px);
+          transform: translateX(52px) translateY(-67px);
           opacity: 1;
         }
 
         &.default {
-          transform: translateX(60px) translateY(-44px);
+          transform: translateX(52px) translateY(-44px);
           opacity: 0;
         }
       }
@@ -284,7 +284,7 @@ export default Vue.extend({
       transition: all 0.3s;
 
       &.compare {
-        transform: translateX(60px);
+        transform: translateX(52px);
       }
     }
 
@@ -292,7 +292,7 @@ export default Vue.extend({
       position: absolute;
       transition: all 0.3s;
       &.compare {
-        transform: translateX(-60px);
+        transform: translateX(-52px);
       }
     }
 

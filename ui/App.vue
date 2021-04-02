@@ -159,7 +159,7 @@ export default Vue.extend({
         numStops: 2
       },
       selectionLength: 0,
-      gradientDegree: 0,
+      gradientDegree: 90,
       gradientType: 'GRADIENT_LINEAR',
       componentKey: {
         // since $forceUpdate doesn't update children, we force a re-render

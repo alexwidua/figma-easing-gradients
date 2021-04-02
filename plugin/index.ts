@@ -2,8 +2,8 @@ import { clone, isGradient, findGradient, getRotation } from './helpers/utils';
 import { easeGradient } from './helpers/gradient';
 
 figma.showUI(__html__, {
-  width: 316,
-  height: 740
+  width: 266,
+  height: 641
 });
 
 /**
