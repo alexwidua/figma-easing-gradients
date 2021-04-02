@@ -1,14 +1,12 @@
 <template>
   <div
     id="app"
-    ref="app"
-    @click="collectEvent"
     :style="
       editor.selectedHandle.length > 0 ? 'cursor: grabbing' : 'cursor: default'
     "
   >
     <div class="flex mt-xxsmall mb-xxsmall">
-      <!-- easing function select -->
+      <!-- Curve/steps menu -->
       <FigSelect
         style="width:50%;"
         :items="[
@@ -18,7 +16,7 @@
         :value="editor.type"
         v-on:input="handleEaseTypeSelect"
       />
-      <!-- ease timing/steps select -->
+      <!-- Easing/steps preset menu -->
       <FigSelect
         v-if="editor.type == 'curve'"
         style="width:50%;"
@@ -64,10 +62,13 @@
       :steps="steps"
       :hasColorStops="hasColorStops"
       :colorStops="colorStops"
-      v-on:onEmitChild="handleMouseDown"
+      @onHandleDown="handleMouseDown"
+      @onStepChange="handleStepChange"
     />
-    <!-- value input + hint toggle -->
-    <div class="flex align-items-center justify-content-between">
+    <!-- Value input -->
+    <div
+      class="flex align-items-center justify-content-between mt-xxxsmall mb-xxxsmall"
+    >
       <div>
         <FigInput
           v-if="editor.type == 'curve'"
@@ -76,83 +77,48 @@
           @change="curveSetter"
         />
         <FigInput
+          iconText="#"
           v-if="editor.type == 'steps'"
           :key="componentKey.stepInput"
           :value="stepGetter"
           @change="stepSetter"
         />
       </div>
-      <div class="flex align-items-center mt-xxsmall mb-xxsmall">
-        <FigIconButton
-          :icon="showLinear ? 'visible' : 'hidden'"
-          @click="toggleLinearPreview"
-        />
-        <FigText
-          size="xsmall"
-          class="ml-xxxsmall mr-xxsmall"
-          style="cursor:default; user-select: none;"
-          @click.native="toggleLinearPreview"
-        >
-          Linear easing
-        </FigText>
-      </div>
     </div>
+    <!-- Preview -->
     <Preview
       :type="editor.type"
       :handles="handles"
       :steps="steps.numSteps"
       :skips="steps.skipSteps"
-      :showLinear="showLinear"
+      :showComparison="showComparison"
       :hasColorStops="hasColorStops"
       :colorStops="colorStops"
       :selectionLength="selectionLength"
+      :gradientDegree="gradientDegree"
+      :gradientType="gradientType"
     />
-    <!-- Toggle linear comparison + buttons -->
+    <!-- Apply button -->
     <div class="flex justify-content-end mt-xxsmall">
-      <div class="flex" style="width:100%">
-        <FigButton
-          style="width:30%; margin-right: 3%;"
-          @click="cancel"
-          secondary
-        >
-          Cancel
-        </FigButton>
-        <FigButton
-          style="width:67%"
-          @click="create"
-          primary
-          :disabled="!hasColorStops"
-        >
-          Apply
-        </FigButton>
-      </div>
+      <FigButton
+        style="width:100%"
+        @click="create"
+        primary
+        :disabled="!hasColorStops"
+      >
+        Apply
+      </FigButton>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-//
-//
-// This is a temporary version which collects the plugins click events to get
-// some insights into the UX of Figma plugins.
-//
-//
-import fire from './store/fire';
-
 import Vue from 'vue';
-// Helpers
 import { easeMap } from './helpers/easeMap';
 import { throttle, isNumber } from './helpers/utils';
-// Components
-import {
-  FigInput,
-  FigSelect,
-  FigButton,
-  FigIconButton,
-  FigText
-} from 'figma-plugin-ds-vue';
+import { FigInput, FigSelect, FigButton } from 'figma-plugin-ds-vue';
 import Editor from '@/components/Editor/Editor.vue';
-import Preview from '@/components/GradientPreview.vue';
+import Preview from '@/components/Preview.vue';
 
 // Typings
 interface Handles {
@@ -163,6 +129,9 @@ export default Vue.extend({
   data() {
     return {
       fnThrottle: Function,
+      /**
+       * Editor data
+       */
       editor: {
         parent: {} as ClientRect,
         selectedHandle: '' as string,
@@ -180,9 +149,9 @@ export default Vue.extend({
         handle1: { x: 0.42, y: 0 },
         handle2: { x: 0.58, y: 1 }
       } as Handles,
-      // show linear easing preview
-      showLinear: false,
-      // stuff handed back from plugin
+      /**
+       * Data handed back from the plugin
+       */
       hasColorStops: false,
       colorStops: {
         stop1: { r: 0, g: 0, b: 0, a: 0 },
@@ -190,33 +159,24 @@ export default Vue.extend({
         numStops: 2
       },
       selectionLength: 0,
+      gradientDegree: 0,
+      gradientType: 'GRADIENT_LINEAR',
       componentKey: {
         // since $forceUpdate doesn't update children, we force a re-render
         // by changing the key (e.g. if a wrong value is entered)
         curveInput: 0,
         stepInput: 0
-      },
-      // For analytics
-      heatMap: [],
-      sessionID: '0'
+      }
     };
   },
   components: {
     FigInput,
     FigSelect,
     FigButton,
-    FigIconButton,
-    FigText,
     Editor,
     Preview
   },
   methods: {
-    /**
-     * Misc functions
-     */
-    toggleLinearPreview() {
-      this.showLinear = !this.showLinear;
-    },
     /**
      * Document event handlers
      */
@@ -283,8 +243,11 @@ export default Vue.extend({
       }
     },
     // skip steps @ step-easing
-    handleSkipSelect(val: string): void {
-      this.steps.skipSteps = val;
+    handleSkipSelect(value: string): void {
+      this.steps.skipSteps = value;
+    },
+    handleStepChange(value: number): void {
+      this.steps.numSteps = value;
     },
     /**
      * Figma plugin
@@ -304,8 +267,10 @@ export default Vue.extend({
           };
           this.hasColorStops = true;
           this.selectionLength = msg.selectionLength;
+          this.gradientDegree = msg.degree;
+          this.gradientType = msg.fill.type;
         } else {
-          this.hasColorStops = false;
+          //this.hasColorStops = false;
           this.selectionLength = msg.selectionLength;
         }
       }
@@ -322,17 +287,6 @@ export default Vue.extend({
       const steps = this.steps.numSteps;
       const skip = this.steps.skipSteps;
 
-      // For analytics
-      fire
-        .database()
-        .ref('heatmap-v2')
-        .push({
-          sessionID: this.sessionID,
-          clicks: this.heatMap,
-          easing: easeCoords,
-          action: 'apply'
-        });
-
       parent.postMessage(
         {
           pluginMessage: {
@@ -347,34 +301,16 @@ export default Vue.extend({
       );
     },
     // post cancel message ui -> plugin
-    cancel() {
-      // For analytics
-      const easeCoords = {
-        x1: this.handles.handle1.x,
-        y1: this.handles.handle1.y,
-        x2: this.handles.handle2.x,
-        y2: this.handles.handle2.y
-      };
-
-      fire
-        .database()
-        .ref('heatmap-v2')
-        .push({
-          sessionID: this.sessionID,
-          clicks: this.heatMap,
-          easing: easeCoords,
-          action: 'cancel'
-        });
-
-      parent.postMessage(
-        {
-          pluginMessage: {
-            type: 'cancel'
-          }
-        },
-        '*'
-      );
-    },
+    // cancel() {
+    //   parent.postMessage(
+    //     {
+    //       pluginMessage: {
+    //         type: 'cancel'
+    //       }
+    //     },
+    //     '*'
+    //   );
+    // },
     /**
      * Input setters
      * Since v-model.lazy isn't supported on child components, we have to
@@ -413,20 +349,6 @@ export default Vue.extend({
         return;
       }
       this.steps.numSteps = value;
-    },
-    //
-    // For analytics
-    //
-    collectEvent(event: MouseEvent): void {
-      const container = this.$refs.app as Element;
-      const clientRect = container.getBoundingClientRect();
-
-      this.heatMap.push({
-        // @ts-expect-error
-        x: event.clientX - clientRect.x,
-        // @ts-expect-error
-        y: event.clientY - clientRect.y
-      });
     }
   },
   computed: {
@@ -461,11 +383,6 @@ export default Vue.extend({
     document.addEventListener('mousemove', (this as any).fnThrottle);
     document.addEventListener('mouseup', this.handleMouseUp);
     window.addEventListener('message', this.handleMsg);
-
-    // For analytics to distinguish sessions since I choose not to timestamp them
-    this.sessionID = Math.random()
-      .toString(36)
-      .substring(7);
   },
   beforeDestroy() {
     // eslint-disable-next-line
