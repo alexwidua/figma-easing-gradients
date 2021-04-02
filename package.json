@@ -5,14 +5,13 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "watch": "vue-cli-service build --watch --mode production"
   },
   "dependencies": {
     "chroma-js": "^2.1.0",
     "core-js": "^3.6.5",
     "easing-coordinates": "^2.0.2",
     "figma-plugin-ds-vue": "^1.1.7",
-    "firebase": "^8.2.10",
     "vue": "^2.6.11"
   },
   "devDependencies": {
