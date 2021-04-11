@@ -7,7 +7,7 @@
   >
     <div class="flex mt-xxsmall mb-xxsmall">
       <!-- Curve/steps menu -->
-      <FigSelect
+      <Select
         style="width:50%;"
         :items="[
           { label: 'Curve', key: 'curve', icon: 'ease-in-out' },
@@ -17,7 +17,7 @@
         v-on:input="handleEaseTypeSelect"
       />
       <!-- Easing/steps preset menu -->
-      <FigSelect
+      <Select
         v-if="editor.type == 'curve'"
         style="width:50%;"
         :items="[
@@ -35,7 +35,7 @@
         :value="curve.ease"
         v-on:input="handleCurveEaseMapSelect"
       />
-      <FigSelect
+      <Select
         v-else
         style="width:50%;"
         :items="[
@@ -70,13 +70,13 @@
       class="flex align-items-center justify-content-between mt-xxxsmall mb-xxxsmall"
     >
       <div>
-        <FigInput
+        <Input
           v-if="editor.type == 'curve'"
           :key="componentKey.curveInput"
           :value="curveGetter"
           @change="curveSetter"
         />
-        <FigInput
+        <Input
           iconText="#"
           v-if="editor.type == 'steps'"
           :key="componentKey.stepInput"
@@ -100,14 +100,14 @@
     />
     <!-- Apply button -->
     <div class="flex justify-content-end mt-xxsmall">
-      <FigButton
+      <Button
         style="width:100%"
         @click="create"
         primary
-        :disabled="!hasColorStops"
+        :disabled="selectionLength < 1"
       >
         Apply
-      </FigButton>
+      </Button>
     </div>
   </div>
 </template>
@@ -116,7 +116,7 @@
 import Vue from 'vue';
 import { easeMap } from './helpers/easeMap';
 import { throttle, isNumber } from './helpers/utils';
-import { FigInput, FigSelect, FigButton } from 'figma-plugin-ds-vue';
+import { Input, Select, Button } from 'figma-plugin-ds-vue';
 import Editor from '@/components/Editor/Editor.vue';
 import Preview from '@/components/Preview.vue';
 
@@ -170,9 +170,9 @@ export default Vue.extend({
     };
   },
   components: {
-    FigInput,
-    FigSelect,
-    FigButton,
+    Input,
+    Select,
+    Button,
     Editor,
     Preview
   },
@@ -300,17 +300,6 @@ export default Vue.extend({
         '*'
       );
     },
-    // post cancel message ui -> plugin
-    // cancel() {
-    //   parent.postMessage(
-    //     {
-    //       pluginMessage: {
-    //         type: 'cancel'
-    //       }
-    //     },
-    //     '*'
-    //   );
-    // },
     /**
      * Input setters
      * Since v-model.lazy isn't supported on child components, we have to

@@ -1,10 +1,10 @@
 <template>
   <div class="wrapper">
-    <div :class="[isWarning ? 'hint--yellow' : 'hint--blue']" class="hint">
-      <span
-        class="icon"
-        :class="isWarning ? 'icon--hint--black' : 'icon--hint--white'"
-      />
+    <div class="hint" :class="[isWarning ? 'hint--yellow' : 'hint--blue']">
+      <!-- <span
+        class="fig-icon"
+        :class="isWarning ? 'fig-icon--hint--black' : 'fig-icon--hint--white'"
+      /> -->
       <slot />
     </div>
   </div>
@@ -46,6 +46,7 @@ export default Vue.extend({
   width: 100%;
   height: 40px;
   position: absolute;
+  padding: 0 16px;
   top: -34px;
   left: 50%;
   transform: translateX(-50%);
@@ -60,7 +61,7 @@ export default Vue.extend({
   cursor: default;
 
   // icon override
-  & .icon {
+  & .fig-icon {
     width: 26px;
     height: 31px;
   }
@@ -77,6 +78,10 @@ export default Vue.extend({
   &--yellow {
     background-color: var(--yellow);
     color: var(--black);
+
+    & .icon {
+      width: 48px;
+    }
   }
 }
 </style>

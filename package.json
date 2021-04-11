@@ -11,7 +11,7 @@
     "chroma-js": "^2.1.0",
     "core-js": "^3.6.5",
     "easing-coordinates": "^2.0.2",
-    "figma-plugin-ds-vue": "^1.1.7",
+    "figma-plugin-ds-vue": "^1.2.4",
     "vue": "^2.6.11"
   },
   "devDependencies": {
