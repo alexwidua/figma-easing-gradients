@@ -89,8 +89,4 @@ figma.ui.onmessage = msg => {
       });
     });
   }
-  // cancel plugin
-  if (msg.type === 'cancel') {
-    figma.closePlugin();
-  }
 };
