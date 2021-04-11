@@ -42,14 +42,28 @@
       v-if="hasNoneSelected || hasMultipleColorStops || hasMultipleElements"
       :isWarning="hasMultipleColorStops || hasMultipleElements"
     >
-      <span v-if="hasNoneSelected">No gradient shape selected.</span>
+      <span v-if="hasNoneSelected"
+        >No gradient shape selected
+        <Tooltip position="bl" width="180" inverse
+          >Select a shape with at least one gradient fill</Tooltip
+        ></span
+      >
       <span>
-        <span v-if="hasMultipleColorStops"
-          >Only the first and last color stop is considered.</span
+        <span v-if="hasMultipleColorStops && !hasMultipleElements"
+          >Shape has multiple color stops.
+          <Tooltip position="bl" width="190"
+            >Only the first and last color stop will be considered</Tooltip
+          ></span
         >
-        <br v-if="hasMultipleColorStops && hasMultipleElements" />
-        <span v-if="hasMultipleElements"
-          >Easing will be applied to multiple elements.</span
+        <span v-if="hasMultipleElements && !hasMultipleColorStops"
+          >Multiple shapes selected.
+          <Tooltip position="bl" width="164"
+            >The same easing function will be applied to multiple
+            elements</Tooltip
+          ></span
+        >
+        <span v-if="hasMultipleElements && hasMultipleColorStops"
+          >Multiple shapes with two or more color stops selected</span
         >
       </span>
     </Toast>
@@ -61,6 +75,7 @@ import Vue, { PropType } from 'vue';
 import chroma, { Color } from 'chroma-js';
 import easingCoordinates from 'easing-coordinates';
 import Toast from '@/components/PreviewToast.vue';
+import { Tooltip } from 'figma-plugin-ds-vue';
 
 // Typings
 type ColorStops = {
@@ -88,7 +103,8 @@ export default Vue.extend({
     };
   },
   components: {
-    Toast
+    Toast,
+    Tooltip
   },
   props: {
     handles: Object as PropType<Record<string, Record<string, number>>>,
@@ -118,7 +134,11 @@ export default Vue.extend({
       return this.selectionLength == 0;
     },
     hasMultipleColorStops(): boolean {
-      return this.colorStops.numStops > 2 && this.hasColorStops;
+      return (
+        this.selectionLength > 0 &&
+        this.colorStops.numStops > 2 &&
+        this.hasColorStops
+      );
     },
     hasMultipleElements(): boolean {
       return this.selectionLength > 1 && this.hasColorStops;
