@@ -128,8 +128,8 @@ type Steps = {
 };
 
 type ColorStops = {
-  stop1: { r: number; g: number; b: number; a: number };
-  stop2: { r: number; g: number; b: number; a: number };
+  stop1: { color: { r: number; g: number; b: number; a: number }; position: number };
+  stop2: { color: { r: number; g: number; b: number; a: number }; position: number };
 };
 
 export default Vue.extend({

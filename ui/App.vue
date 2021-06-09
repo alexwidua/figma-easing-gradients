@@ -154,8 +154,8 @@ export default Vue.extend({
        */
       hasColorStops: false,
       colorStops: {
-        stop1: { r: 0, g: 0, b: 0, a: 0 },
-        stop2: { r: 0, g: 0, b: 0, a: 0 },
+        stop1: { color: { r: 0, g: 0, b: 0, a: 0 }, position: 0 },
+        stop2: { color: { r: 0, g: 0, b: 0, a: 0 }, position: 1 },
         numStops: 2
       },
       selectionLength: 0,
@@ -261,8 +261,8 @@ export default Vue.extend({
           const c1 = fills[0];
           const c2 = fills[fills.length - 1];
           this.colorStops = {
-            stop1: c1.color,
-            stop2: c2.color,
+            stop1: c1,
+            stop2: c2,
             numStops: fills.length
           };
           this.hasColorStops = true;
