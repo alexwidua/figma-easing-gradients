@@ -42,10 +42,8 @@ export function easeGradient(
     return {
       color: { r, g, b, a },
       position:
-        type == 'curve'
-          ? colorStopPositions[0] +
-            position.x * (colorStopPositions[1] - colorStopPositions[0])
-          : position.x
+        colorStopPositions[0] +
+        position.x * (colorStopPositions[1] - colorStopPositions[0])
     };
   });
 }

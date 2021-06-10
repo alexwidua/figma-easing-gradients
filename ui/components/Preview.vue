@@ -105,7 +105,7 @@ export default Vue.extend({
       curveSteps: 15, // How many color stops are used for easing. TODO: make this a prop?
       compareGradients: false,
       initColorStops: { stop1: '#000', stop2: '#fff' },
-      initColorStopPositions: { stop1Position: 0, stop2Position: 1 },
+      initColorStopPositions: { stop1Position: 0, stop2Position: 1 }
     };
   },
   components: {
@@ -168,11 +168,7 @@ export default Vue.extend({
       const easeGradient = ease.map(position => {
         return {
           color: chroma.mix(colorStop1, colorStop2, position.y, 'rgb').rgba(),
-          position:
-            this.type == 'curve'
-              ? stop1Position +
-                position.x * (stop2Position - stop1Position)
-              : position.x
+          position: stop1Position + position.x * (stop2Position - stop1Position)
         };
       });
 
