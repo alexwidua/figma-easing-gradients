@@ -79,14 +79,19 @@ import { Tooltip } from 'figma-plugin-ds-vue';
 
 // Typings
 type ColorStops = {
-  stop1: { r: number; g: number; b: number; a: number };
-  stop2: { r: number; g: number; b: number; a: number };
+  stop1: { color: { r: number; g: number; b: number; a: number }; position: number };
+  stop2: { color: { r: number; g: number; b: number; a: number }; position: number };
   numStops: number;
 };
 
 type hexedColorStops = {
   colorStop1: string | Color;
   colorStop2: string | Color;
+};
+
+type colorStopPositions = {
+  stop1Position: number;
+  stop2Position: number;
 };
 
 export default Vue.extend({
@@ -99,7 +104,8 @@ export default Vue.extend({
     return {
       curveSteps: 15, // How many color stops are used for easing. TODO: make this a prop?
       compareGradients: false,
-      initColorStops: { stop1: '#000', stop2: '#fff' }
+      initColorStops: { stop1: '#000', stop2: '#fff' },
+      initColorStopPositions: { stop1Position: 0, stop2Position: 1 }
     };
   },
   components: {
@@ -148,6 +154,7 @@ export default Vue.extend({
      */
     easedGradient(): string {
       const { colorStop1, colorStop2 } = this.getColorStops;
+      const { stop1Position, stop2Position } = this.getColorStopPositions;
 
       const ease =
         this.type == 'curve'
@@ -161,7 +168,7 @@ export default Vue.extend({
       const easeGradient = ease.map(position => {
         return {
           color: chroma.mix(colorStop1, colorStop2, position.y, 'rgb').rgba(),
-          position: position.x
+          position: stop1Position + position.x * (stop2Position - stop1Position)
         };
       });
 
@@ -182,9 +189,14 @@ export default Vue.extend({
       ) {
         return `background: radial-gradient(50% 50% at 50% 50%, ${inlineStyle.toString()});`;
       } else if (this.gradientType == 'GRADIENT_ANGULAR') {
+        // Figma "wraps" conic gradients by putting the start and end color at +/- 360 degrees from their original positions
+        const startColor = easeGradient[0];
+        const startColorString = `rgba(${startColor.color[0]}, ${startColor.color[1]}, ${startColor.color[2]}, ${startColor.color[3]}) ${(startColor.position + 1) * 100}%`;
+        const endColor = easeGradient[easeGradient.length - 1];
+        const endColorString = `rgba(${endColor.color[0]}, ${endColor.color[1]}, ${endColor.color[2]}, ${endColor.color[3]}) ${(endColor.position - 1) * 100}%`;
         return `background: conic-gradient(from ${
           this.offsetDegree
-        }deg at 50% 50%, ${inlineStyle.toString()});`;
+        }deg at 50% 50%, ${endColorString}, ${inlineStyle.toString()}, ${startColorString});`;
       }
       // Fallback to linear
       else {
@@ -198,19 +210,23 @@ export default Vue.extend({
      */
     linearGradient(): string {
       const { colorStop1, colorStop2 } = this.getColorStops;
+      const { stop1Position, stop2Position } = this.getColorStopPositions;
 
       // Handle different gradient types
       if (this.gradientType == 'GRADIENT_LINEAR') {
-        return `background: linear-gradient(${this.offsetDegree}deg, ${colorStop1} 0%, ${colorStop2} 100%);`;
+        return `background: linear-gradient(${this.offsetDegree}deg, ${colorStop1} ${stop1Position * 100}%, ${colorStop2} ${stop2Position * 100}%);`;
       } else if (
         this.gradientType == 'GRADIENT_RADIAL' ||
         this.gradientType == 'GRADIENT_DIAMOND'
       ) {
-        return `background: radial-gradient(50% 50% at 50% 50%, ${colorStop1} 0%, ${colorStop2} 100%);`;
+        return `background: radial-gradient(50% 50% at 50% 50%, ${colorStop1} ${stop1Position * 100}%, ${colorStop2} ${stop2Position * 100}%);`;
       } else if (this.gradientType == 'GRADIENT_ANGULAR') {
-        return `background: conic-gradient(from ${this.offsetDegree}deg at 50% 50%, ${colorStop1} 0%, ${colorStop2} 100%);`;
+        // Figma "wraps" conic gradients by putting the start and end color at +/- 360 degrees from their original positions
+        const startColorString = `${colorStop1} ${(stop1Position + 1) * 100}%`;
+        const endColorString = `${colorStop2} ${(stop2Position - 1) * 100}%`;
+        return `background: conic-gradient(from ${this.offsetDegree}deg at 50% 50%, ${endColorString}, ${colorStop1} ${stop1Position * 100}%, ${colorStop2} ${stop2Position * 100}%, ${startColorString});`;
       } else {
-        return `background: linear-gradient(${this.offsetDegree}deg, ${colorStop1} 0%, ${colorStop2} 100%);`;
+        return `background: linear-gradient(${this.offsetDegree}deg, ${colorStop1} ${stop1Position * 100}%, ${colorStop2} ${stop2Position * 100}%);`;
       }
     },
     /**
@@ -219,13 +235,25 @@ export default Vue.extend({
     getColorStops(): hexedColorStops {
       const c = this.colorStops;
       const colorStop1 = this.hasColorStops
-        ? chroma.gl(c.stop1.r, c.stop1.g, c.stop1.b, c.stop1.a)
+        ? chroma.gl(c.stop1.color.r, c.stop1.color.g, c.stop1.color.b, c.stop1.color.a)
         : this.initColorStops.stop1;
       const colorStop2 = this.hasColorStops
-        ? chroma.gl(c.stop2.r, c.stop2.g, c.stop2.b, c.stop2.a)
+        ? chroma.gl(c.stop2.color.r, c.stop2.color.g, c.stop2.color.b, c.stop2.color.a)
         : this.initColorStops.stop2;
 
       return { colorStop1, colorStop2 };
+    },
+    /**
+     * Utility to get positions of the supplied colorstops
+     */
+    getColorStopPositions(): colorStopPositions {
+      const c = this.colorStops;
+      const stop1Position = this.hasColorStops
+        ? c.stop1.position : this.initColorStopPositions.stop1Position;
+      const stop2Position = this.hasColorStops
+        ? c.stop2.position : this.initColorStopPositions.stop2Position;
+
+      return {stop1Position, stop2Position};
     },
     /**
      * The gradient rotation handed over from Figma has a different

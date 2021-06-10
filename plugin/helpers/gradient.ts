@@ -20,6 +20,11 @@ export function easeGradient(
     glColor(fill.gradientStops[fill.gradientStops.length - 1])
   ];
 
+  const colorStopPositions = [
+    fill.gradientStops[0].position,
+    fill.gradientStops[fill.gradientStops.length - 1].position
+  ];
+
   // cubic-bézier or step easing with timing values handed from ui
   const ease =
     type == 'curve'
@@ -29,14 +34,16 @@ export function easeGradient(
         )
       : easingCoordinates(`steps(${steps}, ${skip})`);
 
-  // map easibng to Figma ColorStop object
+  // map easing to Figma ColorStop object
   return ease.map(position => {
     const [r, g, b, a] = chroma
       .mix(colorStops[0], colorStops[1], position.y, 'rgb')
       .gl();
     return {
       color: { r, g, b, a },
-      position: position.x
+      position:
+        colorStopPositions[0] +
+        position.x * (colorStopPositions[1] - colorStopPositions[0])
     };
   });
 }
