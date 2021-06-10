@@ -74,7 +74,7 @@
         <g>
           <rect
             :fill="
-              this.hasColorStops ? this.glColor(this.colorStops.stop1) : `#000`
+              this.hasColorStops ? this.glColor(this.colorStops.stop1.color) : `#000`
             "
             class="rect"
             vector-effect="non-scaling-stroke"
@@ -87,7 +87,7 @@
           />
           <rect
             :fill="
-              this.hasColorStops ? this.glColor(this.colorStops.stop2) : `#fff`
+              this.hasColorStops ? this.glColor(this.colorStops.stop2.color) : `#fff`
             "
             class="rect"
             vector-effect="non-scaling-stroke"
