@@ -1,0 +1,69 @@
+/* Editor */
+
+.wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: 32px;
+	border: 1px var(--color-black) solid;
+	border-radius: var(--border-radius-6);
+}
+
+.container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	border: 2px var(--color-silver) solid;
+	border-radius: var(--border-radius-3);
+	user-select: none;
+}
+
+/* Thumb */
+
+.thumb {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	background: var(--color-black);
+	border: 2px solid var(--color-white);
+	border-radius: 100%;
+	transform: translate(-50%, -50%);
+	cursor: grab;
+}
+
+.thumb--zeroed {
+	background: var(--color-white);
+	border: 1px solid var(--color-black);
+}
+
+.thumb--active {
+	background: var(--color-blue);
+	cursor: grabbing;
+}
+
+/* TODO: What dis? */
+/* &--border-override {
+    border: none !important;
+  } */
+
+/* Views */
+
+.viewbox {
+	overflow: visible;
+}
+.path {
+	fill: none;
+	stroke-width: 2px;
+	stroke-linecap: round;
+	stroke: var(--color-black);
+}
+
+.pathBackdrop {
+	stroke: var(--color-silver);
+}
+
+.rect {
+	stroke: var(--bg-silver);
+	stroke-width: 1px;
+}

@@ -1,0 +1,12 @@
+/**
+ * @file Local variables, prefixed with local to avoid conflict with
+ * @create-figma-plugin's UI library.
+ */
+
+:root {
+	/* TODO */
+}
+
+body {
+	overflow: hidden;
+}

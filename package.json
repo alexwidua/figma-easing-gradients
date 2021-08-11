@@ -1,36 +1,43 @@
 {
-  "name": "figma-easing-gradients",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "watch": "vue-cli-service build --watch --mode production"
-  },
-  "dependencies": {
-    "chroma-js": "^2.1.0",
-    "core-js": "^3.6.5",
-    "easing-coordinates": "^2.0.2",
-    "figma-plugin-ds-vue": "^1.2.4",
-    "vue": "^2.6.11"
-  },
-  "devDependencies": {
-    "@figma/plugin-typings": "^1.18.1",
-    "@types/chroma-js": "^2.1.0",
-    "@typescript-eslint/eslint-plugin": "^2.33.0",
-    "@typescript-eslint/parser": "^2.33.0",
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-plugin-typescript": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/eslint-config-typescript": "^5.0.2",
-    "typescript": "~3.9.3",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "node-sass": "^4.12.0",
-    "sass-loader": "^8.0.2",
-    "vue-template-compiler": "^2.6.11",
-    "html-webpack-inline-source-plugin": "0.0.10",
-    "html-webpack-plugin": "^3.2.0"
-  }
+	"name": "figma-copy-and-rotate",
+	"version": "1.0.0",
+	"description": "Create rotated copies of Figma nodes.",
+	"keywords": [
+		"figma-copy-and-rotate",
+		"figma",
+		"figma-plugin",
+		"figma-plugins"
+	],
+	"license": "MIT",
+	"author": "Alexander Widua",
+	"dependencies": {
+		"@create-figma-plugin/ui": "^1.2.2",
+		"@create-figma-plugin/utilities": "^1.2.2",
+		"easing-coordinates": "^2.0.2",
+		"preact": "^10.5.14"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/alexwidua/figma-copy-and-rotate"
+	},
+	"engines": {
+		"node": ">=14"
+	},
+	"devDependencies": {
+		"@create-figma-plugin/build": "^1.2.2",
+		"@create-figma-plugin/tsconfig": "^1.2.2",
+		"@figma/plugin-typings": "^1",
+		"@zilahir/stylelint-config-rational-order": "^0.1.5",
+		"typescript": "^4"
+	},
+	"scripts": {
+		"build": "build-figma-plugin --typecheck --minify",
+		"watch": "build-figma-plugin --typecheck --watch"
+	},
+	"figma-plugin": {
+		"id": "dddd",
+		"name": "Easing Gradients Refactor",
+		"main": "src/main.ts",
+		"ui": "src/ui.tsx"
+	}
 }
