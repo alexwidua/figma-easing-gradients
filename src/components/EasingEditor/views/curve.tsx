@@ -3,7 +3,7 @@ import style from '../style.css'
 
 const Curve = ({ matrix }: any) => {
 	return (
-		<svg class="viewbox" viewBox="0 0 1 1" fill="none">
+		<svg class={style.viewbox} viewBox="0 0 1 1" fill="none">
 			<g>
 				{/* <!-- Diagonal line --> */}
 				<line

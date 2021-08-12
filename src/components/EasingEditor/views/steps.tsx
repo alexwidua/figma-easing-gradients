@@ -3,14 +3,18 @@ import style from '../style.css'
 
 import easingCoordinates from 'easing-coordinates'
 
-const Curve = ({ numSteps = 6, skip = 'skip-end' }: any) => {
+const Curve = ({ steps = 6, jump = 'skip-none', onMouseDown }: any) => {
 	const getPolyPoints = (): string => {
-		const coords = easingCoordinates(`steps(${numSteps}, ${skip})`)
+		const coords = easingCoordinates(`steps(${steps}, ${jump})`)
 		return coords.map((pos) => `${pos.x},${1 - pos.y}`).join(' ')
 	}
 
 	return (
-		<svg class="viewbox" viewBox="0 0 1 1" fill="none">
+		<svg
+			class={`${style.viewbox} ${style.steps}`}
+			viewBox="0 0 1 1"
+			fill="none"
+			onMouseDown={onMouseDown}>
 			<g>
 				<polyline
 					class={style.path}

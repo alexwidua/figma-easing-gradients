@@ -52,6 +52,11 @@
 .viewbox {
 	overflow: visible;
 }
+
+.steps {
+	cursor: ew-resize !important;
+}
+
 .path {
 	fill: none;
 	stroke-width: 2px;
