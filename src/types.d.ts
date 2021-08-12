@@ -16,3 +16,11 @@ type EasingOptions = {
 	steps: number
 	skip: string
 }
+
+type SelectionState =
+	| 'VALID'
+	| 'INVALID_TYPE'
+	| 'MULTIPLE_ELEMENTS'
+	| 'NO_GRADIENT_FILL'
+	| 'EMPTY'
+type SelectionStateMap = { [type in SelectionState]: string }
