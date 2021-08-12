@@ -3,6 +3,15 @@ import chroma from 'chroma-js'
 import { gl } from './color'
 
 /**
+ * Checks if given fill is a gradient fill by searching for color stops.
+ * @param fill : Figma paint layer
+ * @returns false if fill isn't a gradient fill, ex. SolidPaint or ImagePaint
+ */
+export function isGradientFill(fill: Paint): fill is GradientPaint {
+	return 'gradientStops' in fill
+}
+
+/**
  * Interpolates two color stops with a given set of coordinates or number fo steps.
  * @param fill - The to-be-eased Figma gradient fill layer
  * @param options

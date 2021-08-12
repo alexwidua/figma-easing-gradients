@@ -1,17 +1,22 @@
+import { isGradientFill } from './gradient'
+
 /**
  * Checks if selection is a valid geometry node by looking for fill properties.
  * @param selection
- * @returns false invalid nodes, ex. SlideNodes
+ * @returns false if node is not a geometry node, ex. SlideNodes
  */
-export function isShape(selection: any): selection is GeometryMixin {
+export function nodeIsGeometryMixin(
+	selection: any
+): selection is GeometryMixin {
 	return 'fills' in selection
 }
 
 /**
- * Checks if given fill layer is a gradient fill by looking for color stops.
- * @param fill : Figma paint layer
- * @returns false if fill doesn't contains gradient fills, ex. SolidPaint or ImagePaint
+ * Traverses all fills and searches for atleast one gradient fill.
+ * @param node
+ * @returns true if node has atleast one gradient fill
  */
-export function isGradient(fill: Paint): fill is GradientPaint {
-	return 'gradientStops' in fill
+export function nodeHasGradientFill(node: GeometryMixin) {
+	const fills = node.fills as Paint[]
+	return fills.findIndex((fill) => isGradientFill(fill)) > -1
 }
