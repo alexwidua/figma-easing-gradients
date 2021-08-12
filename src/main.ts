@@ -1,8 +1,9 @@
-import { isGradient, isShape } from './utils/node'
-import { interpolateColorStops } from './utils/gradient'
+import { nodeIsGeometryMixin } from './utils/node'
+import { isGradientFill, interpolateColorStops } from './utils/gradient'
 import { validateSelection } from './utils/selection'
 import {
 	on,
+	emit,
 	showUI,
 	cloneObject,
 	insertBeforeNode
@@ -33,11 +34,12 @@ export default function () {
 
 	function updateGradientFill(node: GeometryMixin): void {
 		if (!node) return console.error('No node.')
-		if (!isShape(node)) return console.warn('Node is not a shape.')
+		if (!nodeIsGeometryMixin(node))
+			return console.warn('Node is not a shape.')
 		const fills = node.fills as Paint[]
 
 		fills.forEach((fillProperty, index) => {
-			if (!isGradient(fillProperty))
+			if (!isGradientFill(fillProperty))
 				return console.warn('Node does not contain gradient fills.')
 
 			// TODO: Type tempNode
@@ -81,10 +83,12 @@ export default function () {
 	 */
 
 	function handleSelectionChange() {
-		const pageSelection = validateSelection(figma.currentPage.selection)
-		console.log(pageSelection)
-
-		if (pageSelection.match(/^(EMPTY|INVALID||MULTIPLE)$/)) {
+		const selectionState = validateSelection(figma.currentPage.selection)
+		if (
+			selectionState.match(
+				/^(EMPTY|MULTIPLE_ELEMENTS|NO_GRADIENT_FILL|INVALID_TYPE)$/
+			)
+		) {
 			cleanUpCanvasPreview()
 		} else {
 			const selection = figma.currentPage.selection[0]
@@ -103,6 +107,8 @@ export default function () {
 				updateCanvasPreview(selectionRef)
 			}
 		}
+
+		emit('UPDATE_SELECTION_STATE', selectionState)
 	}
 
 	function handleUpdate(options: EasingOptions) {

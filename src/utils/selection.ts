@@ -1,15 +1,18 @@
-import { isShape } from './node'
+import { nodeHasGradientFill, nodeIsGeometryMixin } from './node'
 
-export function validateSelection(selection: ReadonlyArray<SceneNode>): any {
+export function validateSelection(
+	selection: ReadonlyArray<SceneNode>
+): SelectionState {
 	if (selection.length) {
 		if (selection.length > 1) {
-			return 'MULTIPLE'
+			return 'MULTIPLE_ELEMENTS'
 		}
 		const node: SceneNode = selection[0]
-		if (!isShape(node)) {
-			return 'INVALID'
+		if (!nodeIsGeometryMixin(node)) {
+			return 'INVALID_TYPE'
 		} else {
-			return 'VALID'
+			if (!nodeHasGradientFill(node)) return 'NO_GRADIENT_FILL'
+			else return 'VALID'
 		}
 	} else {
 		return 'EMPTY'

@@ -24,6 +24,8 @@ const Plugin = () => {
 	])
 	const [steps, setSteps] = useState<number>(2)
 	const [jump, setJump] = useState<string>('skip-none')
+	const [selectionState, setSelectionState] =
+		useState<SelectionState>('INVALID_TYPE')
 
 	// data emitted to plugin
 	const data = { type: easingType, matrix, steps, skip: jump }
@@ -39,6 +41,20 @@ const Plugin = () => {
 		{ children: 'jump-start', value: 'start' },
 		{ children: 'jump-end', value: 'end' }
 	]
+
+	const buttonMap: SelectionStateMap = {
+		EMPTY: 'No element selected',
+		MULTIPLE_ELEMENTS: 'Select only one element',
+		INVALID_TYPE: 'Element type not supported',
+		NO_GRADIENT_FILL: 'Element has no gradient fill',
+		VALID: 'Apply easing'
+	}
+
+	useEffect(() => {
+		on('UPDATE_SELECTION_STATE', (selectionState) => {
+			setSelectionState(selectionState)
+		})
+	}, [])
 
 	useEffect(() => {
 		emit('UPDATE_FROM_UI', data)
@@ -115,8 +131,11 @@ const Plugin = () => {
 					/>
 				</Columns>
 			)}
-			<Button fullWidth onClick={() => emit('APPLY_EASING_FUNCTION')}>
-				Apply
+			<Button
+				fullWidth
+				onClick={() => emit('APPLY_EASING_FUNCTION')}
+				disabled={selectionState !== 'VALID'}>
+				{buttonMap[selectionState]}
 			</Button>
 		</Container>
 	)
