@@ -7,3 +7,12 @@ interface UISettings {
 }
 
 type Matrix = number[][]
+
+type EasingType = 'CURVE' | 'STEPS'
+
+type EasingOptions = {
+	type: EasingType
+	matrix: Matrix
+	steps: number
+	skip: string
+}
