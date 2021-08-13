@@ -9,12 +9,24 @@ const Curve = ({ steps = 6, jump = 'skip-none', onMouseDown }: any) => {
 		return coords.map((pos) => `${pos.x},${1 - pos.y}`).join(' ')
 	}
 
+	// display dashed line as visual guide for jump/skip values
+	const getJumpHelper = [
+		`${easingCoordinates(`steps(${steps}, ${jump})`)[0].x}, ${
+			1 - easingCoordinates(`steps(${steps}, ${jump})`)[0].y
+		}`,
+		`${easingCoordinates(`steps(${steps}, ${jump})`)[steps * 2 - 1].x}, ${
+			1 - easingCoordinates(`steps(${steps}, ${jump})`)[steps * 2 - 1].y
+		}`
+	]
+
 	return (
 		<svg
-			class={`${style.viewbox} ${style.steps}`}
+			class={`${style.viewbox}`}
+			style={{ cursor: 'ew-resize' }}
 			viewBox="0 0 1 1"
 			fill="none"
 			onMouseDown={onMouseDown}>
+			{/* stepped polyline */}
 			<g>
 				<polyline
 					class={style.path}
@@ -22,30 +34,21 @@ const Curve = ({ steps = 6, jump = 'skip-none', onMouseDown }: any) => {
 					points={getPolyPoints()}
 				/>
 			</g>
-			{/* <!-- 0,0 and 1,1 points --> */}
+
+			<polyline
+				class={`${style.path} ${style.dashed}`}
+				vector-effect="non-scaling-stroke"
+				points={`0,1 ${getJumpHelper[0]}`}
+			/>
+			<polyline
+				class={`${style.path} ${style.dashed}`}
+				vector-effect="non-scaling-stroke"
+				points={`1,0 ${getJumpHelper[1]}`}
+			/>
+			{/* terminal points */}
 			<g>
-				<rect
-					fill="#000"
-					class={style.rect}
-					vector-effect="non-scaling-stroke"
-					x="-0.015"
-					y="0.985"
-					width="0.03"
-					height="0.03"
-					rx="0.015"
-					ry="0.015"
-				/>
-				<rect
-					fill="#fff"
-					class={style.rect}
-					vector-effect="non-scaling-stroke"
-					x="0.985"
-					y="-0.015"
-					width="0.03"
-					height="0.03"
-					rx="0.015"
-					ry="0.015"
-				/>
+				<circle class={style.terminalPoint} cx="0" cy="1" r="0.015" />
+				<circle class={style.terminalPoint} cx="1" cy="0" r="0.015" />
 			</g>
 		</svg>
 	)
