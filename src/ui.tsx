@@ -1,5 +1,5 @@
 import { h, JSX } from 'preact'
-import { useState, useEffect } from 'preact/hooks'
+import { useState, useEffect, useCallback } from 'preact/hooks'
 import {
 	render,
 	Button,
@@ -11,6 +11,7 @@ import {
 	DropdownOption
 } from '@create-figma-plugin/ui'
 import { on, emit } from '@create-figma-plugin/utilities'
+import { debounce } from './utils/debounce'
 import { showDecimals } from './utils/number'
 
 import { Editor } from './components'
@@ -28,7 +29,7 @@ const Plugin = () => {
 		useState<SelectionState>('INVALID_TYPE')
 
 	// data emitted to plugin
-	const data = { type: easingType, matrix, steps, skip: jump }
+	const messageData = { type: easingType, matrix, steps, skip: jump }
 
 	// dropdown options
 	const easingTypeOptions: Array<DropdownOption> = [
@@ -57,7 +58,7 @@ const Plugin = () => {
 	}, [])
 
 	useEffect(() => {
-		emit('UPDATE_FROM_UI', data)
+		debounceNumItemsChange(messageData)
 	}, [easingType, matrix, steps, jump])
 
 	/**
@@ -93,6 +94,17 @@ const Plugin = () => {
 			setSteps(data.steps)
 		}
 	}
+
+	/**
+	 * Debounce message emit
+	 */
+
+	const debounceWaitTime = 200 //ms
+
+	const debounceNumItemsChange = useCallback(
+		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
+		[]
+	)
 
 	return (
 		<Container>
