@@ -14,8 +14,8 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
-	border: 2px var(--color-silver) solid;
-	border-radius: var(--border-radius-3);
+	border: 1px solid var(--color-silver);
+	box-shadow: inset 0px 0px 0px 1px var(--color-silver);
 	user-select: none;
 }
 
@@ -32,29 +32,20 @@
 	cursor: grab;
 }
 
-.thumb--zeroed {
-	background: var(--color-white);
-	border: 1px solid var(--color-black);
-}
-
-.thumb--active {
+.thumbDragged {
 	background: var(--color-blue);
 	cursor: grabbing;
 }
 
-/* TODO: What dis? */
-/* &--border-override {
-    border: none !important;
-  } */
+.thumbZero {
+	background: var(--color-white);
+	border: 1px solid var(--color-black);
+}
 
 /* Views */
 
 .viewbox {
 	overflow: visible;
-}
-
-.steps {
-	cursor: ew-resize !important;
 }
 
 .path {
@@ -64,11 +55,16 @@
 	stroke: var(--color-black);
 }
 
-.pathBackdrop {
+.dashed {
+	stroke-dasharray: 4;
+}
+
+.diagonal {
 	stroke: var(--color-silver);
 }
 
-.rect {
-	stroke: var(--bg-silver);
-	stroke-width: 1px;
+.terminalPoint {
+	fill: var(--color-white);
+	stroke: var(--color-black);
+	stroke-width: 0.005;
 }

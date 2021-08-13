@@ -82,11 +82,13 @@ const EasingEditor = ({
 				{easingType === 'CURVE' && (
 					<div>
 						<Thumb
+							isDragged={currentIndex === 0}
 							index={0}
 							matrix={matrix}
 							onMouseDown={() => handleMouseDown(0)}
 						/>
 						<Thumb
+							isDragged={currentIndex === 1}
 							index={1}
 							matrix={matrix}
 							onMouseDown={() => handleMouseDown(1)}
