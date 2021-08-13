@@ -1,3 +1,4 @@
 import Editor from './EasingEditor/editor'
+import PresetMenu from './PresetMenu'
 
-export { Editor }
+export { PresetMenu, Editor }

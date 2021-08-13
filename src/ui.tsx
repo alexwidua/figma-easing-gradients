@@ -14,11 +14,12 @@ import { on, emit } from '@create-figma-plugin/utilities'
 import { debounce } from './utils/debounce'
 import { showDecimals } from './utils/number'
 
-import { Editor } from './components'
+import { PresetMenu, Editor } from './components'
 
 const Plugin = () => {
 	// ui-exposed states
 	const [easingType, setEasingType] = useState<string>('CURVE')
+
 	const [matrix, setMatrix] = useState<Matrix>([
 		[0.42, 0.0],
 		[0.58, 1.0]
@@ -36,6 +37,7 @@ const Plugin = () => {
 		{ children: 'Curve', value: 'CURVE' },
 		{ children: 'Steps', value: 'STEPS' }
 	]
+
 	const jumpOptions: Array<DropdownOption> = [
 		{ children: 'jump-none', value: 'skip-none' },
 		{ children: 'jump-both', value: 'skip-both' },
@@ -74,6 +76,7 @@ const Plugin = () => {
 				[value[0], value[1]],
 				[value[2], value[3]]
 			])
+			//setCurrentPreset(null)
 		}
 	}
 
@@ -90,6 +93,7 @@ const Plugin = () => {
 			const prev = [...matrix]
 			prev[thumb.index] = thumb.vector
 			setMatrix(prev)
+			//setCurrentPreset(null)
 		} else if (data.type === 'STEPS') {
 			setSteps(data.steps)
 		}
@@ -114,7 +118,13 @@ const Plugin = () => {
 					onChange={(e) => setEasingType(e.currentTarget.value)}
 					options={easingTypeOptions}
 				/>
-				<div>TODO: Presets</div>
+				{/* <Dropdown
+					value={currentPreset}
+					onChange={handlePresetInput}
+					options={presetOptions}
+					placeholder="Custom"
+				/> */}
+				<PresetMenu />
 			</Columns>
 			<Editor
 				easingType={easingType}
