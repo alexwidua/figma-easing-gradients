@@ -1,5 +1,5 @@
 import { h, JSX } from 'preact'
-import { useState, useEffect, useCallback } from 'preact/hooks'
+import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import {
 	render,
 	Button,
@@ -8,7 +8,8 @@ import {
 	Textbox,
 	TextboxNumeric,
 	Dropdown,
-	DropdownOption
+	DropdownOption,
+	useMouseDownOutside
 } from '@create-figma-plugin/ui'
 import { on, emit } from '@create-figma-plugin/utilities'
 import { debounce } from './utils/debounce'
@@ -16,24 +17,41 @@ import { showDecimals } from './utils/number'
 
 import { PresetMenu, Editor } from './components'
 
-const NO_PRESETS_AVAILABLE_OPTION: Array<DropdownOption> = [
-	{ header: 'No userPresets.' }
+const PLACEHOLDER_BEFORE_INTERACTION = 'Choose preset...'
+const PLACEHOLDER_AFTER_INTERACTION = 'Custom'
+
+const NO_PRESETS_OPTION: Array<DropdownOption> = [{ header: 'No presets.' }]
+const EASING_TYPE_OPTIONS: Array<DropdownOption> = [
+	{ children: 'Curve', value: 'CURVE' },
+	{ children: 'Steps', value: 'STEPS' }
+]
+const JUMP_OPTIONS: Array<DropdownOption> = [
+	{ children: 'jump-none', value: 'skip-none' },
+	{ children: 'jump-both', value: 'skip-both' },
+	{ children: 'jump-start', value: 'start' },
+	{ children: 'jump-end', value: 'end' }
+]
+const BUTTON_MAP: SelectionStateMap = {
+	EMPTY: 'No element selected',
+	MULTIPLE_ELEMENTS: 'Select only one element',
+	INVALID_TYPE: 'Element type not supported',
+	NO_GRADIENT_FILL: 'Element has no gradient fill',
+	VALID: 'Apply easing'
+}
+const DEFAULT_MATRIX = [
+	[0.42, 0.0],
+	[0.58, 1.0]
 ]
 
 const Plugin = () => {
-	// ui-exposed states
 	const [easingType, setEasingType] = useState<string>('CURVE')
 
-	// UI component should control preset menu state
 	const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
-	const [userPresets, setUserPresets] = useState<any>(
-		NO_PRESETS_AVAILABLE_OPTION
-	)
+	const [userPresets, setUserPresets] = useState<any>(NO_PRESETS_OPTION)
 	const [isManagingPresets, setIsManagingPresets] = useState(false)
-	const [matrix, setMatrix] = useState<Matrix>([
-		[0.42, 0.0],
-		[0.58, 1.0]
-	])
+	const [hasInteractedWithPresetMenu, setHasInteractedWithPresetMenu] =
+		useState(false)
+	const [matrix, setMatrix] = useState<Matrix>(DEFAULT_MATRIX)
 	const [steps, setSteps] = useState<number>(2)
 	const [jump, setJump] = useState<string>('skip-none')
 	const [selectionState, setSelectionState] =
@@ -42,37 +60,16 @@ const Plugin = () => {
 	// data emitted to plugin
 	const messageData = { type: easingType, matrix, steps, skip: jump }
 
-	// dropdown options
-	const easingTypeOptions: Array<DropdownOption> = [
-		{ children: 'Curve', value: 'CURVE' },
-		{ children: 'Steps', value: 'STEPS' }
-	]
-
-	const jumpOptions: Array<DropdownOption> = [
-		{ children: 'jump-none', value: 'skip-none' },
-		{ children: 'jump-both', value: 'skip-both' },
-		{ children: 'jump-start', value: 'start' },
-		{ children: 'jump-end', value: 'end' }
-	]
-
-	const buttonMap: SelectionStateMap = {
-		EMPTY: 'No element selected',
-		MULTIPLE_ELEMENTS: 'Select only one element',
-		INVALID_TYPE: 'Element type not supported',
-		NO_GRADIENT_FILL: 'Element has no gradient fill',
-		VALID: 'Apply easing'
-	}
+	const ref = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		on('UPDATE_SELECTION_STATE', (selectionState) => {
-			setSelectionState(selectionState)
-		})
-
-		// Editor refactor
-		on('EMIT_PRESETS_TO_UI', (storedPresets) => {
+		on('INITIALLY_EMIT_PRESETS_TO_UI', (storedPresets) => {
 			if (storedPresets.length) {
 				setUserPresets([...storedPresets])
 			}
+		})
+		on('UPDATE_SELECTION_STATE', (selectionState) => {
+			setSelectionState(selectionState)
 		})
 		on('RESPOND_TO_PRESETS_UPDATE', handleResponseFromPlugin)
 	}, [])
@@ -81,10 +78,22 @@ const Plugin = () => {
 		debounceNumItemsChange(messageData)
 	}, [easingType, matrix, steps, jump])
 
+	useEffect(() => {
+		if (selectedPreset) {
+			// for changing placeholder from 'choose preset...' to 'custom'
+			if (!hasInteractedWithPresetMenu)
+				setHasInteractedWithPresetMenu(true)
+
+			const matrix = [...userPresets].find(
+				(el) => el.value === selectedPreset
+			).matrix
+			if (matrix) setMatrix(matrix)
+		}
+	}, [selectedPreset])
+
 	/**
 	 * Handle input events
 	 */
-
 	function handleMatrixInput(e: JSX.TargetedEvent<HTMLInputElement>): void {
 		const value = e.currentTarget.value.split(', ').map(Number)
 		const isValidValue = value.every((e) => e >= 0 && e <= 1)
@@ -94,7 +103,7 @@ const Plugin = () => {
 				[value[0], value[1]],
 				[value[2], value[3]]
 			])
-			//setCurrentPreset(null)
+			setSelectedPreset(null)
 		}
 	}
 
@@ -105,15 +114,15 @@ const Plugin = () => {
 		}
 	}
 
-	function handleThumbChange(data: any): void {
-		if (data.type === 'CURVE') {
-			const { thumb } = data
+	function handleEditorChange(value: EditorChange): void {
+		if (value.type === 'CURVE' && value.thumb) {
+			const { thumb } = value
 			const prev = [...matrix]
 			prev[thumb.index] = thumb.vector
 			setMatrix(prev)
-			//setCurrentPreset(null)
-		} else if (data.type === 'STEPS') {
-			setSteps(data.steps)
+			setSelectedPreset(null)
+		} else if (value.type === 'STEPS' && value.steps) {
+			setSteps(value.steps)
 		}
 	}
 
@@ -122,7 +131,6 @@ const Plugin = () => {
 	 */
 
 	const debounceWaitTime = 200 //ms
-
 	const debounceNumItemsChange = useCallback(
 		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
 		[]
@@ -168,7 +176,7 @@ const Plugin = () => {
 				}
 				emitUserPresetUpdate(data)
 			} else {
-				// TODO: Initiate reset here...
+				emit('EMIT_PRESET_RESET_TO_PLUGIN')
 			}
 			setIsManagingPresets(false)
 		}
@@ -182,10 +190,9 @@ const Plugin = () => {
 	function handleResponseFromPlugin(response: Array<any> | undefined): void {
 		if (response) {
 			if (!response.length) {
-				setUserPresets(NO_PRESETS_AVAILABLE_OPTION)
+				setUserPresets(NO_PRESETS_OPTION)
 			} else {
-				// if presets has been added, select it
-				if (response.length > userPresets.length) {
+				if (response.length >= userPresets.length) {
 					setSelectedPreset(response[response.length - 1].value)
 				}
 				setUserPresets([...response])
@@ -193,33 +200,39 @@ const Plugin = () => {
 		}
 	}
 
+	useMouseDownOutside({
+		onMouseDownOutside: () => setIsManagingPresets(false),
+		ref
+	})
+
 	return (
 		<Container>
 			<Columns>
 				<Dropdown
 					value={easingType}
 					onChange={(e) => setEasingType(e.currentTarget.value)}
-					options={easingTypeOptions}
+					options={EASING_TYPE_OPTIONS}
 				/>
-				{/* <Dropdown
-					value={currentPreset}
-					onChange={handlePresetInput}
-					options={presetOptions}
-					placeholder="Custom"
-				/> */}
-				<PresetMenu
-					value={selectedPreset}
-					userPresets={userPresets}
-					isManagingPresets={isManagingPresets}
-					onValueChange={handlePresetMenuChange}
-				/>
+				<div ref={ref}>
+					<PresetMenu
+						value={selectedPreset}
+						placeholder={
+							!hasInteractedWithPresetMenu
+								? PLACEHOLDER_BEFORE_INTERACTION
+								: PLACEHOLDER_AFTER_INTERACTION
+						}
+						userPresets={userPresets}
+						isManagingPresets={isManagingPresets}
+						onValueChange={handlePresetMenuChange}
+					/>
+				</div>
 			</Columns>
 			<Editor
 				easingType={easingType}
 				matrix={matrix}
 				steps={steps}
 				jump={jump}
-				onThumbChange={handleThumbChange}
+				onEditorChange={handleEditorChange}
 			/>
 			{easingType === 'CURVE' ? (
 				<Textbox
@@ -237,7 +250,7 @@ const Plugin = () => {
 					<Dropdown
 						value={jump}
 						onChange={(e) => setJump(e.currentTarget.value)}
-						options={jumpOptions}
+						options={JUMP_OPTIONS}
 					/>
 				</Columns>
 			)}
@@ -245,7 +258,7 @@ const Plugin = () => {
 				fullWidth
 				onClick={() => emit('APPLY_EASING_FUNCTION')}
 				disabled={selectionState !== 'VALID'}>
-				{buttonMap[selectionState]}
+				{BUTTON_MAP[selectionState]}
 			</Button>
 		</Container>
 	)

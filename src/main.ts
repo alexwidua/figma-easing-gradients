@@ -10,7 +10,7 @@ import {
 	insertBeforeNode
 } from '@create-figma-plugin/utilities'
 
-const STORAGE_KEY_PRESETS = 'easing-gradients-10'
+const STORAGE_KEY_PRESETS = 'easing-gradients-11'
 const DEFAULT_PRESETS = [
 	{
 		children: 'Ease example 1',
@@ -30,7 +30,6 @@ const DEFAULT_PRESETS = [
 	}
 ]
 
-// TODO: Emit selection state to UI to visually update apply button
 // TODO: Typings
 
 export default function () {
@@ -143,7 +142,7 @@ export default function () {
 	async function initiallyEmitPresetsToUI() {
 		getValueFromStoreOrInit(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
 			.then((response) => {
-				emit('EMIT_PRESETS_TO_UI', response)
+				emit('INITIALLY_EMIT_PRESETS_TO_UI', response)
 			})
 			.catch(() => {
 				figma.notify(
@@ -151,7 +150,7 @@ export default function () {
 				)
 			})
 	}
-	//TODO: Catch errors
+
 	async function receivePresetsFromUI(presets: any) {
 		setValueToStorage(STORAGE_KEY_PRESETS, presets)
 			.then((response) => {
@@ -162,12 +161,23 @@ export default function () {
 			})
 	}
 
+	async function resetPresetsToDefault() {
+		setValueToStorage(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
+			.then((response) => {
+				emit('RESPOND_TO_PRESETS_UPDATE', response)
+			})
+			.catch(() => {
+				figma.notify(`Couldn't reset preset, please try again.`)
+			})
+	}
+
 	/**
 	 * Event listeners
 	 */
 	on('UPDATE_FROM_UI', handleUpdate)
 	on('APPLY_EASING_FUNCTION', applyEasingFunction)
 	on('EMIT_PRESETS_TO_PLUGIN', receivePresetsFromUI)
+	on('EMIT_PRESET_RESET_TO_PLUGIN', resetPresetsToDefault)
 	figma.on('selectionchange', handleSelectionChange)
 	figma.on('close', cleanUpCanvasPreview)
 }

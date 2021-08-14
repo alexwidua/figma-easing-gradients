@@ -1,13 +1,8 @@
 import { h, JSX } from 'preact'
 import { useState, useMemo, useRef, useEffect } from 'preact/hooks'
-import {
-	Dropdown,
-	DropdownOption,
-	useMouseDownOutside
-} from '@create-figma-plugin/ui'
+import { Dropdown, DropdownOption } from '@create-figma-plugin/ui'
 import { useFocus } from '../../hooks/useFocus'
 
-const PRESET_MENU_PLACEHOLDER: string = 'Choose preset...'
 const MENU_OPTIONS: Array<DropdownOption> = [
 	{ separator: true },
 	{ children: 'Add current as preset', value: 'ADD_PRESET' },
@@ -19,6 +14,7 @@ const MENU_OPTIONS: Array<DropdownOption> = [
 
 const PresetMenu = ({
 	value,
+	placeholder,
 	isManagingPresets,
 	userPresets,
 	onValueChange
@@ -55,7 +51,7 @@ const PresetMenu = ({
 			value={isManagingPresets ? null : value}
 			onChange={handlePresetInput}
 			options={isManagingPresets ? managePresetsOptions : defaultOptions}
-			placeholder={PRESET_MENU_PLACEHOLDER}
+			placeholder={placeholder}
 		/>
 	)
 }
