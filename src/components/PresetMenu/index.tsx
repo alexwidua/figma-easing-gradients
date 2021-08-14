@@ -1,5 +1,11 @@
 import { h, JSX } from 'preact'
-import { useState, useMemo, useRef, useEffect } from 'preact/hooks'
+import {
+	useState,
+	useMemo,
+	useRef,
+	useEffect,
+	useImperativeHandle
+} from 'preact/hooks'
 import {
 	Dropdown,
 	DropdownOption,
@@ -8,94 +14,134 @@ import {
 import { on, once, emit } from '@create-figma-plugin/utilities'
 import { useFocus } from '../../hooks/useFocus'
 
-const PresetMenu = () => {
+const PRESET_MENU_PLACEHOLDER: string = 'Choose preset...'
+const NO_PRESETS_AVAILABLE_OPTION: Array<DropdownOption> = [
+	{ header: 'No userPresets.' }
+]
+const MENU_OPTIONS: Array<DropdownOption> = [
+	{ separator: true },
+	{ children: 'Add current as preset', value: 'ADD_PRESET' },
+	{
+		children: 'Manage userPresets...',
+		value: 'MANAGE_PRESETS'
+	}
+]
+
+const PresetMenu = ({ matrix, onChange }: any) => {
 	/**
 	 * States
 	 */
-	const dropdownRef = useRef<HTMLDivElement>(null)
-	const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
-	const [presets, setPresets] = useState<any>([{ header: 'No presets.' }])
-	const options = [
-		{ separator: true },
-		{ children: 'Add current as preset', value: 'ADD_PRESET' },
-		{
-			children: 'Manage presets...',
-			value: 'MANAGE_PRESETS'
-		}
-	]
-	const defaultOptions = useMemo<any>(() => {
-		return [...presets, ...options]
-	}, [presets])
-	const manageOptions = useMemo(() => {
+	const [userPresets, setUserPresets] = useState<any>(
+		NO_PRESETS_AVAILABLE_OPTION
+	)
+	const menuOptions = MENU_OPTIONS
+
+	const [selectedOption, setSelectedOption] = useState<string | null>(null)
+	const defaultOptions = useMemo<Array<DropdownOption>>(() => {
+		return [...userPresets, ...menuOptions]
+	}, [userPresets])
+
+	const managePresetsOptions = useMemo<Array<DropdownOption>>(() => {
 		return [
 			{ header: 'Which preset to remove?' },
-			...presets,
+			...userPresets,
 			{ separator: true },
-			{ children: 'Reset presets to default', value: 'RESET_DEFAULT' }
+			{ children: 'Reset userPresets to default', value: 'RESET_DEFAULT' }
 		]
-	}, [presets])
-	const [showManageOptions, setShowManageOptions] = useState(false)
+	}, [userPresets])
 
+	const [showManagePresetOptions, setShowManagePresetOptions] =
+		useState<boolean>(false)
+
+	const ref = useRef<HTMLDivElement>(null)
+
+	/**
+	 * Hooks
+	 */
 	useEffect(() => {
-		once('EMIT_PRESETS_TO_UI', (storedPresets) => {
+		on('EMIT_PRESETS_TO_UI', (storedPresets) => {
 			if (storedPresets.length) {
-				setPresets([...storedPresets])
+				setUserPresets([...storedPresets])
 			}
 		})
 		on('RESPOND_TO_PRESETS_UPDATE', handleResponseFromPlugin)
 	}, [])
 
+	useEffect(() => {
+		if (selectedOption) {
+			const temp = [...userPresets]
+			const presetMatrix = temp.find(
+				(el) => el.value === selectedOption
+			).matrix
+			onChange(presetMatrix)
+		}
+	}, [selectedOption])
+
+	// useEffect(() => {
+	// 	setSelectedOption(null)
+	// }, [matrix])
+
+	/**
+	 * Input event handlers
+	 */
 	function handlePresetInput(e: JSX.TargetedEvent<HTMLInputElement>): void {
 		const value = e.currentTarget.value
 
 		if (value === 'ADD_PRESET') {
 			// TODO: generate unique custom elements
-			const temp = [...presets]
-			const newPreset: any = { children: 'Custom_1', value: 'CUSTOM_1' }
+			const temp = [...userPresets]
+			const newPreset: any = {
+				children: 'Custom_1',
+				value: 'CUSTOM_1',
+				matrix: [...matrix]
+			}
 			if (temp.some((el) => el.header)) {
-				emitPresetsUpdate([newPreset])
+				emitUserPresetUpdate([newPreset])
 			} else {
-				emitPresetsUpdate([...temp, newPreset])
+				emitUserPresetUpdate([...temp, newPreset])
 			}
 		} else if (value === 'MANAGE_PRESETS') {
-			setShowManageOptions(true)
-			setSelectedPreset(null)
+			setShowManagePresetOptions(true)
+			setSelectedOption(null)
 		} else {
-			setSelectedPreset(value)
+			setSelectedOption(value)
 		}
 	}
 
-	function handleManagePresets(e: JSX.TargetedEvent<HTMLInputElement>) {
+	function handleManagePresets(e: JSX.TargetedEvent<HTMLInputElement>): void {
 		const value = e.currentTarget.value
 		if (value !== 'RESET_DEFAULT') {
-			const temp = [...presets]
+			const temp = [...userPresets]
 			const updatedPresets = temp.filter((e) => e.value !== value)
 			if (!updatedPresets.length) {
-				emitPresetsUpdate([])
+				emitUserPresetUpdate([])
 			} else {
-				emitPresetsUpdate([...updatedPresets])
+				emitUserPresetUpdate([...updatedPresets])
 			}
 		} else {
-			// Initiate reset here...
+			// TODO: Initiate reset here...
 		}
-		setShowManageOptions(false)
+		setShowManagePresetOptions(false)
 	}
 
 	/**
 	 * Handle emits to plugin/store updates
 	 */
-
-	function emitPresetsUpdate(presets: any) {
-		emit('EMIT_PRESETS_TO_PLUGIN', presets)
+	function emitUserPresetUpdate(userPresets: Array<DropdownOption>): void {
+		emit('EMIT_PRESETS_TO_PLUGIN', userPresets)
 	}
 
-	function handleResponseFromPlugin(response: any) {
+	// TODO: Type.
+	function handleResponseFromPlugin(response: Array<any> | undefined): void {
 		if (response) {
 			if (!response.length) {
-				setPresets([{ header: 'No presets.' }])
+				setUserPresets(NO_PRESETS_AVAILABLE_OPTION)
 			} else {
-				setPresets([...response])
-				setSelectedPreset(response[response.length - 1].value)
+				// if presets has been added, select it
+				if (response.length > userPresets.length) {
+					setSelectedOption(response[response.length - 1].value)
+				}
+				setUserPresets([...response])
 			}
 		}
 	}
@@ -103,23 +149,27 @@ const PresetMenu = () => {
 	/**
 	 * Misc
 	 */
-
 	useMouseDownOutside({
-		onMouseDownOutside: () => setShowManageOptions(false),
-		ref: dropdownRef
+		onMouseDownOutside: () => setShowManagePresetOptions(false),
+		ref
 	})
 
 	return (
-		<div ref={dropdownRef}>
+		<div ref={ref}>
 			<Dropdown
-				{...useFocus(showManageOptions)}
-				value={showManageOptions ? null : selectedPreset}
+				{...useFocus(showManagePresetOptions)}
+				value={showManagePresetOptions ? null : selectedOption}
 				onChange={
-					showManageOptions ? handleManagePresets : handlePresetInput
+					showManagePresetOptions
+						? handleManagePresets
+						: handlePresetInput
 				}
-				//options={showManageOptions ? manageOptions : defaultOptions}
-				options={showManageOptions ? manageOptions : defaultOptions}
-				placeholder="Choose preset..."
+				options={
+					showManagePresetOptions
+						? managePresetsOptions
+						: defaultOptions
+				}
+				placeholder={PRESET_MENU_PLACEHOLDER}
 			/>
 		</div>
 	)

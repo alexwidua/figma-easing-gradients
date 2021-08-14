@@ -1,37 +1,38 @@
 /**
- * Handle storage
+ * Tries to read value from figma.clientStorage, initializes and sets store
+ * if no value has been set.
+ * @param key
+ * @param initValue
+ * @returns
  */
-
-const STORAGE_KEY = 'easing-presets-1'
-
-const defaultPresets = [
-	{ children: 'Ease example 1', value: 'EASE_1' },
-	{ children: 'Ease example 2', value: 'EASE_2' }
-]
-
-export async function getPresets() {
-	let presets = defaultPresets
+export async function getValueFromStoreOrInit(key: string, initValue: any) {
+	let value = initValue
 	try {
-		const fromClientStorage = await figma.clientStorage.getAsync(
-			STORAGE_KEY
-		)
-		if (typeof fromClientStorage === 'undefined') {
-			figma.clientStorage.setAsync(STORAGE_KEY, presets)
-		} else presets = fromClientStorage
-	} catch {
-		console.error(`Couldn't retrieve user presets.`)
+		const tryFromClientStorage = await figma.clientStorage.getAsync(key)
+		if (typeof tryFromClientStorage === 'undefined') {
+			await figma.clientStorage.setAsync(key, value)
+		} else {
+			value = tryFromClientStorage
+		}
+	} catch (e) {
+		console.error(`Couldn't get value from store.`, e)
 	}
-	return presets
+	return value
 }
 
-export async function setPresets(presets: any) {
-	let response
+/**
+ * Writes value to figma.clientStorage.
+ * @param key
+ * @param value
+ * @returns supplied value if successful, returns undefined if failed
+ */
+export async function setValueToStorage(key: string, value: any) {
+	let response = undefined
 	try {
-		await figma.clientStorage.setAsync(STORAGE_KEY, presets)
-		response = presets
-	} catch {
-		console.error(`Couldn't set user presets.`)
-		response = undefined
+		await figma.clientStorage.setAsync(key, value)
+		response = value
+	} catch (e) {
+		console.error(`Couldn't set user presets.`, e)
 	}
 	return response
 }

@@ -99,6 +99,10 @@ const Plugin = () => {
 		}
 	}
 
+	function handlePresetChange(matrix: Matrix) {
+		setMatrix(matrix)
+	}
+
 	/**
 	 * Debounce message emit
 	 */
@@ -124,7 +128,7 @@ const Plugin = () => {
 					options={presetOptions}
 					placeholder="Custom"
 				/> */}
-				<PresetMenu />
+				<PresetMenu matrix={matrix} onChange={handlePresetChange} />
 			</Columns>
 			<Editor
 				easingType={easingType}

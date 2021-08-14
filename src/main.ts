@@ -1,7 +1,7 @@
 import { nodeIsGeometryMixin } from './utils/node'
 import { isGradientFill, interpolateColorStops } from './utils/gradient'
 import { validateSelection } from './utils/selection'
-import { getPresets, setPresets } from './utils/storage'
+import { getValueFromStoreOrInit, setValueToStorage } from './utils/storage'
 import {
 	on,
 	emit,
@@ -10,13 +10,33 @@ import {
 	insertBeforeNode
 } from '@create-figma-plugin/utilities'
 
+const STORAGE_KEY_PRESETS = 'easing-gradients-10'
+const DEFAULT_PRESETS = [
+	{
+		children: 'Ease example 1',
+		value: 'EASE_1',
+		matrix: [
+			[0.22, 0.0],
+			[0.18, 1.0]
+		]
+	},
+	{
+		children: 'Ease example 2',
+		value: 'EASE_2',
+		matrix: [
+			[0.82, 0.0],
+			[0.68, 1.0]
+		]
+	}
+]
+
 // TODO: Emit selection state to UI to visually update apply button
 // TODO: Typings
 
 export default function () {
 	const ui: UISettings = { width: 280, height: 538 }
 	showUI(ui)
-	emitPresetsToUI()
+	initiallyEmitPresetsToUI()
 
 	let selectionRef: any
 	let cloneRef: any
@@ -33,7 +53,6 @@ export default function () {
 	/**
 	 * Functions
 	 */
-
 	function updateGradientFill(node: GeometryMixin): void {
 		if (!node) return console.error('No node.')
 		if (!nodeIsGeometryMixin(node))
@@ -54,7 +73,7 @@ export default function () {
 		})
 	}
 
-	function applyEasingFunction() {
+	function applyEasingFunction(): void {
 		if (!selectionRef) return
 		updateGradientFill(selectionRef)
 		cleanUpCanvasPreview()
@@ -121,23 +140,31 @@ export default function () {
 	/**
 	 * Handle preset getting/setting
 	 */
-
-	async function emitPresetsToUI() {
-		getPresets().then((presets) => {
-			emit('EMIT_PRESETS_TO_UI', presets)
-		})
+	async function initiallyEmitPresetsToUI() {
+		getValueFromStoreOrInit(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
+			.then((response) => {
+				emit('EMIT_PRESETS_TO_UI', response)
+			})
+			.catch(() => {
+				figma.notify(
+					`Couldn't load user presets, default presets will be used.`
+				)
+			})
 	}
-
+	//TODO: Catch errors
 	async function receivePresetsFromUI(presets: any) {
-		setPresets(presets).then((response) => {
-			emit('RESPOND_TO_PRESETS_UPDATE', response)
-		})
+		setValueToStorage(STORAGE_KEY_PRESETS, presets)
+			.then((response) => {
+				emit('RESPOND_TO_PRESETS_UPDATE', response)
+			})
+			.catch(() => {
+				figma.notify(`Couldn't save preset, please try again.`)
+			})
 	}
 
 	/**
 	 * Event listeners
 	 */
-
 	on('UPDATE_FROM_UI', handleUpdate)
 	on('APPLY_EASING_FUNCTION', applyEasingFunction)
 	on('EMIT_PRESETS_TO_PLUGIN', receivePresetsFromUI)
