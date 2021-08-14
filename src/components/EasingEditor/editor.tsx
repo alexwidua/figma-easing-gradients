@@ -11,17 +11,17 @@ const EasingEditor = ({
 	matrix,
 	steps,
 	jump,
-	onThumbChange
+	onEditorChange
 }: any) => {
 	// empty -1, thumbs 0..1, steps scrubbing 2
-	const [currentIndex, setCurrentIndex] = useState(-1)
+	const [currentIndex, setCurrentIndex] = useState<EditorInputIndex>(-1)
 	const [initX, setInitX] = useState<number>(0)
-	const [initSteps, setInitSteps] = useState(steps)
-	const scrubSensitivity = 0.1 // 1 => 1 step increase per 1 pixel
+	const [initSteps, setInitSteps] = useState<number>(steps)
+	const scrubSensitivity: number = 0.1 // 1 => 1 step increase per 1 pixel
 
 	const container = useRef<HTMLDivElement>(null)
 
-	function handleMouseDown(index: number, e?: MouseEvent): void {
+	function handleMouseDown(index: EditorInputIndex, e?: MouseEvent): void {
 		setCurrentIndex(index)
 		if (e && index === 2) {
 			// hold onto reference values for scrubbing
@@ -33,9 +33,13 @@ const EasingEditor = ({
 	function handleMouseMove(e: MouseEvent): void {
 		if (currentIndex === -1 || !container.current) return
 
+		let value: EditorChange
+
 		// if dragging thumb
 		if (currentIndex < 2) {
 			const rect: ClientRect = container.current.getBoundingClientRect()
+
+			// keep handles in viewbox bounds
 			const x: number =
 				e.clientX <= rect.left
 					? 0
@@ -49,23 +53,23 @@ const EasingEditor = ({
 					? 0
 					: 1 - (e.clientY - rect.top) / (rect.bottom - rect.top)
 
-			const data: any = {
+			value = {
 				type: 'CURVE',
 				thumb: { index: currentIndex, vector: [x, y] }
 			}
-			onThumbChange(data)
 		}
 		// step scrubbing
-		else if (currentIndex === 2) {
+		else {
 			const deltaX = e.clientX - initX
 			const addFriction = Math.floor(deltaX * scrubSensitivity)
 			const minSteps = Math.max(initSteps + addFriction, 2)
-			const data: any = {
+
+			value = {
 				type: 'STEPS',
 				steps: minSteps
 			}
-			onThumbChange(data)
 		}
+		onEditorChange(value)
 	}
 
 	function cancelDragEvent(): void {
