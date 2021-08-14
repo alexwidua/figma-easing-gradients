@@ -16,10 +16,20 @@ import { showDecimals } from './utils/number'
 
 import { PresetMenu, Editor } from './components'
 
+const NO_PRESETS_AVAILABLE_OPTION: Array<DropdownOption> = [
+	{ header: 'No userPresets.' }
+]
+
 const Plugin = () => {
 	// ui-exposed states
 	const [easingType, setEasingType] = useState<string>('CURVE')
 
+	// UI component should control preset menu state
+	const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
+	const [userPresets, setUserPresets] = useState<any>(
+		NO_PRESETS_AVAILABLE_OPTION
+	)
+	const [isManagingPresets, setIsManagingPresets] = useState(false)
 	const [matrix, setMatrix] = useState<Matrix>([
 		[0.42, 0.0],
 		[0.58, 1.0]
@@ -57,6 +67,14 @@ const Plugin = () => {
 		on('UPDATE_SELECTION_STATE', (selectionState) => {
 			setSelectionState(selectionState)
 		})
+
+		// Editor refactor
+		on('EMIT_PRESETS_TO_UI', (storedPresets) => {
+			if (storedPresets.length) {
+				setUserPresets([...storedPresets])
+			}
+		})
+		on('RESPOND_TO_PRESETS_UPDATE', handleResponseFromPlugin)
 	}, [])
 
 	useEffect(() => {
@@ -99,10 +117,6 @@ const Plugin = () => {
 		}
 	}
 
-	function handlePresetChange(matrix: Matrix) {
-		setMatrix(matrix)
-	}
-
 	/**
 	 * Debounce message emit
 	 */
@@ -113,6 +127,71 @@ const Plugin = () => {
 		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
 		[]
 	)
+
+	/**
+	 * Refactor editor
+	 * TODO: Organize funcs
+	 */
+	function handlePresetMenuChange(value: string) {
+		if (!isManagingPresets) {
+			if (value === 'ADD_PRESET') {
+				// TODO: generate unique custom elements
+				let data
+				const temp = [...userPresets]
+				const newPreset: any = {
+					children: 'Custom_1',
+					value: 'CUSTOM_1',
+					matrix: [...matrix]
+				}
+				if ([...userPresets].some((el) => el.header)) {
+					data = [newPreset]
+				} else {
+					data = [...temp, newPreset]
+				}
+				emitUserPresetUpdate(data)
+			} else if (value === 'MANAGE_PRESETS') {
+				setIsManagingPresets(true)
+				setSelectedPreset(null)
+			} else {
+				setSelectedPreset(value)
+			}
+		} else {
+			if (value !== 'RESET_DEFAULT') {
+				let data: any
+				const updatedPresets = [...userPresets].filter(
+					(e) => e.value !== value
+				)
+				if (!updatedPresets.length) {
+					data = []
+				} else {
+					data = [...updatedPresets]
+				}
+				emitUserPresetUpdate(data)
+			} else {
+				// TODO: Initiate reset here...
+			}
+			setIsManagingPresets(false)
+		}
+	}
+
+	function emitUserPresetUpdate(userPresets: Array<DropdownOption>): void {
+		emit('EMIT_PRESETS_TO_PLUGIN', userPresets)
+	}
+
+	// TODO: Type.
+	function handleResponseFromPlugin(response: Array<any> | undefined): void {
+		if (response) {
+			if (!response.length) {
+				setUserPresets(NO_PRESETS_AVAILABLE_OPTION)
+			} else {
+				// if presets has been added, select it
+				if (response.length > userPresets.length) {
+					setSelectedPreset(response[response.length - 1].value)
+				}
+				setUserPresets([...response])
+			}
+		}
+	}
 
 	return (
 		<Container>
@@ -128,7 +207,12 @@ const Plugin = () => {
 					options={presetOptions}
 					placeholder="Custom"
 				/> */}
-				<PresetMenu matrix={matrix} onChange={handlePresetChange} />
+				<PresetMenu
+					value={selectedPreset}
+					userPresets={userPresets}
+					isManagingPresets={isManagingPresets}
+					onValueChange={handlePresetMenuChange}
+				/>
 			</Columns>
 			<Editor
 				easingType={easingType}
