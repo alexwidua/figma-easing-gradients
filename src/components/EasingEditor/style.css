@@ -29,15 +29,13 @@
 	border: 2px solid var(--color-white);
 	border-radius: 100%;
 	transform: translate(-50%, -50%);
-	cursor: grab;
 }
 
-.thumbDragged {
+.thumb.dragged {
 	background: var(--color-blue);
-	cursor: grabbing;
 }
 
-.thumbZero {
+.thumb.zeroed {
 	background: var(--color-white);
 	border: 1px solid var(--color-black);
 }
@@ -63,7 +61,7 @@
 	stroke: var(--color-silver);
 }
 
-.terminalPoint {
+.point {
 	fill: var(--color-white);
 	stroke: var(--color-black);
 	stroke-width: 0.005;
