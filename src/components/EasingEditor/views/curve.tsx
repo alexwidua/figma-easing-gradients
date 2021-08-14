@@ -37,22 +37,12 @@ const Curve = ({ matrix }: any) => {
 					class={style.path}
 					vector-effect="non-scaling-stroke"
 					d={`M0,1 C${[matrix[0][0], 1 - matrix[0][1]]}
-			                ${[matrix[1][1], 1 - matrix[1][1]]} 1,0`}
+			                ${[matrix[1][0], 1 - matrix[1][1]]} 1,0`}
 				/>
 				{/* terminal points */}
 				<g>
-					<circle
-						class={style.terminalPoint}
-						cx="0"
-						cy="1"
-						r="0.015"
-					/>
-					<circle
-						class={style.terminalPoint}
-						cx="1"
-						cy="0"
-						r="0.015"
-					/>
+					<circle class={style.point} cx="0" cy="1" r="0.015" />
+					<circle class={style.point} cx="1" cy="0" r="0.015" />
 				</g>
 			</g>
 		</svg>

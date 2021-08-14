@@ -11,8 +11,8 @@ const Thumb = ({ index, isDragged, matrix, onMouseDown }: any) => {
 		<div
 			class={`
 			${style.thumb}
-			${isDragged && style.thumbDragged}
-			${matrix[index][0] === 0 && matrix[index][1] === 0 && style.thumbZero}
+			${isDragged && style.dragged}
+			${matrix[index][0] === index && matrix[index][1] === index && style.zeroed}
 			`}
 			style={inlineThumb}
 			onMouseDown={onMouseDown}
