@@ -1,5 +1,5 @@
 import { h, JSX } from 'preact'
-import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'preact/hooks'
 import {
 	render,
 	Button,
@@ -9,13 +9,20 @@ import {
 	TextboxNumeric,
 	Dropdown,
 	DropdownOption,
-	useMouseDownOutside
+	useMouseDownOutside,
+	useInitialFocus
 } from '@create-figma-plugin/ui'
 import { on, emit } from '@create-figma-plugin/utilities'
 import { debounce } from './utils/debounce'
 import { showDecimals } from './utils/number'
+import { getRandomString, getCurveSynonym } from './utils/string'
+import { usePreviousState } from './hooks/usePreviousState'
+
+import './vars.css'
+import style from './style.css'
 
 import { PresetMenu, Editor } from './components'
+import { useFocus } from './hooks/useFocus'
 
 const PLACEHOLDER_BEFORE_INTERACTION = 'Choose preset...'
 const PLACEHOLDER_AFTER_INTERACTION = 'Custom'
@@ -48,7 +55,15 @@ const Plugin = () => {
 
 	const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
 	const [userPresets, setUserPresets] = useState<any>(NO_PRESETS_OPTION)
-	const [isManagingPresets, setIsManagingPresets] = useState(false)
+	const [tempCustomPreset, setTempCustomPreset] = useState<any>(null)
+	const [customPresetName, setCustomPresetName] = useState<string>('')
+	const [customPresetPlaceholder, setCustomPresetPlaceholder] =
+		useState<any>('')
+	const [showCustomPresetDialog, setShowCustomPresetDialog] =
+		useState<boolean>(false)
+	const previousPresets: any = usePreviousState(userPresets)
+	const [showManagingPresetsDialog, setShowManagingPresetsDialog] =
+		useState(false)
 	const [hasInteractedWithPresetMenu, setHasInteractedWithPresetMenu] =
 		useState(false)
 	const [matrix, setMatrix] = useState<Matrix>(DEFAULT_MATRIX)
@@ -141,24 +156,22 @@ const Plugin = () => {
 	 * TODO: Organize funcs
 	 */
 	function handlePresetMenuChange(value: string) {
-		if (!isManagingPresets) {
+		if (!showManagingPresetsDialog) {
 			if (value === 'ADD_PRESET') {
 				// TODO: generate unique custom elements
-				let data
-				const temp = [...userPresets]
+				// let data
+
+				const randStr = getRandomString()
 				const newPreset: any = {
-					children: 'Custom_1',
-					value: 'CUSTOM_1',
+					value: randStr,
 					matrix: [...matrix]
 				}
-				if ([...userPresets].some((el) => el.header)) {
-					data = [newPreset]
-				} else {
-					data = [...temp, newPreset]
-				}
-				emitUserPresetUpdate(data)
+				const placeholder = getCurveSynonym([...matrix])
+				setTempCustomPreset(newPreset)
+				setCustomPresetPlaceholder(placeholder)
+				setShowCustomPresetDialog(true)
 			} else if (value === 'MANAGE_PRESETS') {
-				setIsManagingPresets(true)
+				setShowManagingPresetsDialog(true)
 				setSelectedPreset(null)
 			} else {
 				setSelectedPreset(value)
@@ -178,8 +191,45 @@ const Plugin = () => {
 			} else {
 				emit('EMIT_PRESET_RESET_TO_PLUGIN')
 			}
-			setIsManagingPresets(false)
+			setShowManagingPresetsDialog(false)
 		}
+	}
+
+	function handleCustomPresetInput(
+		e: JSX.TargetedEvent<HTMLInputElement>
+	): void {
+		const value = e.currentTarget.value
+		setCustomPresetName(value)
+	}
+
+	function handleCustomPresetDialogApply() {
+		if (customPresetName.length > 24) return
+
+		let data
+		const presetName = customPresetName || customPresetPlaceholder
+		const newPreset = { children: presetName, ...tempCustomPreset }
+		if ([...userPresets].some((el) => el.header)) {
+			data = [newPreset]
+		} else {
+			data = [...userPresets, newPreset]
+		}
+		emitUserPresetUpdate(data)
+		resetCustomPresetDialog()
+	}
+
+	function handleMouseDownOutside(): void {
+		setShowManagingPresetsDialog(false)
+		resetCustomPresetDialog()
+	}
+
+	function resetCustomPresetDialog() {
+		setShowCustomPresetDialog(false)
+		setTempCustomPreset(null)
+		setCustomPresetName('')
+	}
+
+	function validateCustomPresetInput(value: string): string | boolean {
+		return value !== ''
 	}
 
 	function emitUserPresetUpdate(userPresets: Array<DropdownOption>): void {
@@ -190,9 +240,12 @@ const Plugin = () => {
 	function handleResponseFromPlugin(response: Array<any> | undefined): void {
 		if (response) {
 			if (!response.length) {
+				console.log('hit')
 				setUserPresets(NO_PRESETS_OPTION)
 			} else {
+				console.log(response)
 				if (response.length >= userPresets.length) {
+					console.log('Booya')
 					setSelectedPreset(response[response.length - 1].value)
 				}
 				setUserPresets([...response])
@@ -201,7 +254,7 @@ const Plugin = () => {
 	}
 
 	useMouseDownOutside({
-		onMouseDownOutside: () => setIsManagingPresets(false),
+		onMouseDownOutside: () => handleMouseDownOutside(),
 		ref
 	})
 
@@ -213,7 +266,30 @@ const Plugin = () => {
 					onChange={(e) => setEasingType(e.currentTarget.value)}
 					options={EASING_TYPE_OPTIONS}
 				/>
-				<div ref={ref}>
+				<div ref={ref} style={{ position: 'relative' }}>
+					<div
+						class={`${style.presetInput} ${
+							!showCustomPresetDialog && style.isHidden
+						}`}>
+						<div class={style.header}>Enter name</div>
+						<Textbox
+							// FIXME: Textbox doesn't focus after first time
+							{...(showCustomPresetDialog &&
+								useFocus(showCustomPresetDialog))}
+							value={customPresetName}
+							onInput={handleCustomPresetInput}
+							validateOnBlur={validateCustomPresetInput}
+							placeholder={customPresetPlaceholder}
+						/>
+						<Columns>
+							<Button
+								fullWidth
+								onClick={handleCustomPresetDialogApply}>
+								Add
+							</Button>
+						</Columns>
+					</div>
+
 					<PresetMenu
 						value={selectedPreset}
 						placeholder={
@@ -222,7 +298,7 @@ const Plugin = () => {
 								: PLACEHOLDER_AFTER_INTERACTION
 						}
 						userPresets={userPresets}
-						isManagingPresets={isManagingPresets}
+						showManagingPresetsDialog={showManagingPresetsDialog}
 						onValueChange={handlePresetMenuChange}
 					/>
 				</div>
