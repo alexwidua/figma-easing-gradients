@@ -2,11 +2,11 @@ import { useEffect } from 'preact/hooks'
 
 const FOCUS_DATA_ATTRIBUTE_NAME = 'data-focus'
 
-export type InitialFocus = {
+export type Focus = {
 	[FOCUS_DATA_ATTRIBUTE_NAME]: true
 }
 
-export function useFocus(shouldFocus: boolean): InitialFocus {
+export function useFocus(shouldFocus: boolean): Focus {
 	useEffect(
 		function (): void {
 			const focusableElements = document.querySelectorAll<HTMLElement>(
