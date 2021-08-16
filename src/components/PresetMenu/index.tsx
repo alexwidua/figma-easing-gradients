@@ -15,7 +15,7 @@ const MENU_OPTIONS: Array<DropdownOption> = [
 const PresetMenu = ({
 	value,
 	placeholder,
-	isManagingPresets,
+	showManagingPresetsDialog,
 	userPresets,
 	onValueChange
 }: any) => {
@@ -47,10 +47,14 @@ const PresetMenu = ({
 
 	return (
 		<Dropdown
-			{...useFocus(isManagingPresets)}
-			value={isManagingPresets ? null : value}
+			{...useFocus(showManagingPresetsDialog)}
+			value={showManagingPresetsDialog ? null : value}
 			onChange={handlePresetInput}
-			options={isManagingPresets ? managePresetsOptions : defaultOptions}
+			options={
+				showManagingPresetsDialog
+					? managePresetsOptions
+					: defaultOptions
+			}
 			placeholder={placeholder}
 		/>
 	)
