@@ -10,3 +10,10 @@
 body {
 	overflow: hidden !important;
 }
+
+/* @media screen and (-webkit-min-device-pixel-ratio: 1.5),
+  screen and (min-resolution: 1.5dppx) {
+  .menu {
+    -webkit-font-smoothing: antialiased;
+  }
+} */
