@@ -30,6 +30,10 @@ const DEFAULT_PRESETS = [
 	}
 ]
 
+const ERROR_MAP: ErrorMap = {
+	PRESET_INPUT_TOO_MANY_CHARS: 'Enter a name with less than 24 characters.'
+}
+
 // TODO: Typings
 
 export default function () {
@@ -136,6 +140,11 @@ export default function () {
 		handleSelectionChange()
 	}
 
+	function handleErrorMessage(key: ErrorKey) {
+		const errorMsg = ERROR_MAP[key]
+		figma.notify(errorMsg)
+	}
+
 	/**
 	 * Handle preset getting/setting
 	 */
@@ -178,6 +187,7 @@ export default function () {
 	on('APPLY_EASING_FUNCTION', applyEasingFunction)
 	on('EMIT_PRESETS_TO_PLUGIN', receivePresetsFromUI)
 	on('EMIT_PRESET_RESET_TO_PLUGIN', resetPresetsToDefault)
+	on('EMIT_ERROR_TO_PLUGIN', handleErrorMessage)
 	figma.on('selectionchange', handleSelectionChange)
 	figma.on('close', cleanUpCanvasPreview)
 }
