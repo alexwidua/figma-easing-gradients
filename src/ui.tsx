@@ -1,5 +1,7 @@
 import { h, JSX } from 'preact'
-import { useState, useEffect, useCallback, useRef, useMemo } from 'preact/hooks'
+import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { on, emit } from '@create-figma-plugin/utilities'
+import './base.css'
 import {
 	render,
 	Button,
@@ -8,24 +10,21 @@ import {
 	Textbox,
 	TextboxNumeric,
 	Dropdown,
-	DropdownOption,
-	useMouseDownOutside,
-	useInitialFocus
+	useMouseDownOutside
 } from '@create-figma-plugin/ui'
-import { on, emit } from '@create-figma-plugin/utilities'
-import { debounce } from './utils/debounce'
-import { showDecimals } from './utils/number'
-import { getRandomString, getCurveSynonym } from './utils/string'
-import { usePreviousState } from './hooks/usePreviousState'
+import {
+	debounce,
+	showDecimals,
+	getRandomString,
+	getCurveSynonym
+} from './utils'
+import { Editor, PresetMenu, PresetInput } from './components'
 
-import './vars.css'
-import style from './style.css'
+// types
+import { DropdownOption } from '@create-figma-plugin/ui'
 
-import { PresetMenu, Editor } from './components'
-import { useFocus } from './hooks/useFocus'
-
-const PLACEHOLDER_BEFORE_INTERACTION = 'Choose preset...'
-const PLACEHOLDER_AFTER_INTERACTION = 'Custom'
+const PLACEHOLDER_BEFORE_INTERACTION_COPY = 'Choose preset...'
+const PLACEHOLDER_AFTER_INTERACTION_COPY = 'Custom'
 
 const NO_PRESETS_OPTION: Array<DropdownOption> = [{ header: 'No presets.' }]
 const EASING_TYPE_OPTIONS: Array<DropdownOption> = [
@@ -45,27 +44,35 @@ const BUTTON_MAP: SelectionStateMap = {
 	NO_GRADIENT_FILL: 'Element has no gradient fill',
 	VALID: 'Apply easing'
 }
+
 const DEFAULT_MATRIX = [
 	[0.42, 0.0],
 	[0.58, 1.0]
 ]
 
 const Plugin = () => {
-	const [easingType, setEasingType] = useState<string>('CURVE')
+	/**
+	 * States
+	 */
+	const [easingType, setEasingType] = useState<EasingType>('CURVE')
 
-	const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
-	const [userPresets, setUserPresets] = useState<any>(NO_PRESETS_OPTION)
-	const [tempCustomPreset, setTempCustomPreset] = useState<any>(null)
+	const [selectedPreset, setSelectedPreset] =
+		useState<PresetOptionKey | null>(null)
+	const [presets, setPresets] = useState<any>(NO_PRESETS_OPTION)
+
+	// used as reference for custom preset name input
+	const [customPresetRef, setCustomPresetRef] = useState<PresetOption | null>(
+		null
+	)
 	const [customPresetName, setCustomPresetName] = useState<string>('')
 	const [customPresetPlaceholder, setCustomPresetPlaceholder] =
-		useState<any>('')
-	const [showCustomPresetDialog, setShowCustomPresetDialog] =
+		useState<string>('')
+	const [showPresetInputDialog, setShowPresetInputDialog] =
 		useState<boolean>(false)
-	const previousPresets: any = usePreviousState(userPresets)
 	const [showManagingPresetsDialog, setShowManagingPresetsDialog] =
-		useState(false)
+		useState<boolean>(false)
 	const [hasInteractedWithPresetMenu, setHasInteractedWithPresetMenu] =
-		useState(false)
+		useState<boolean>(false)
 	const [matrix, setMatrix] = useState<Matrix>(DEFAULT_MATRIX)
 	const [steps, setSteps] = useState<number>(2)
 	const [jump, setJump] = useState<string>('skip-none')
@@ -75,12 +82,13 @@ const Plugin = () => {
 	// data emitted to plugin
 	const messageData = { type: easingType, matrix, steps, skip: jump }
 
-	const ref = useRef<HTMLDivElement>(null)
-
+	/**
+	 * Register event listeners
+	 */
 	useEffect(() => {
 		on('INITIALLY_EMIT_PRESETS_TO_UI', (storedPresets) => {
 			if (storedPresets.length) {
-				setUserPresets([...storedPresets])
+				setPresets([...storedPresets])
 			}
 		})
 		on('UPDATE_SELECTION_STATE', (selectionState) => {
@@ -99,7 +107,7 @@ const Plugin = () => {
 			if (!hasInteractedWithPresetMenu)
 				setHasInteractedWithPresetMenu(true)
 
-			const matrix = [...userPresets].find(
+			const matrix = [...presets].find(
 				(el) => el.value === selectedPreset
 			).matrix
 			if (matrix) setMatrix(matrix)
@@ -142,9 +150,8 @@ const Plugin = () => {
 	}
 
 	/**
-	 * Debounce message emit
+	 * Debounce gradient updates
 	 */
-
 	const debounceWaitTime = 200 //ms
 	const debounceNumItemsChange = useCallback(
 		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
@@ -152,24 +159,20 @@ const Plugin = () => {
 	)
 
 	/**
-	 * Refactor editor
-	 * TODO: Organize funcs
+	 * Handle preset menu changes and custom preset input
 	 */
-	function handlePresetMenuChange(value: string) {
+	function handlePresetMenuChange(value: PresetOptionKey) {
 		if (!showManagingPresetsDialog) {
 			if (value === 'ADD_PRESET') {
-				// TODO: generate unique custom elements
-				// let data
-
-				const randStr = getRandomString()
-				const newPreset: any = {
-					value: randStr,
+				const customPresetName: GeneratedCustomPresetKey = `CUSTOM_${getRandomString()}`
+				const newPreset: PresetOptionValue = {
+					value: customPresetName,
 					matrix: [...matrix]
 				}
 				const placeholder = getCurveSynonym([...matrix])
-				setTempCustomPreset(newPreset)
+				setCustomPresetRef(newPreset)
 				setCustomPresetPlaceholder(placeholder)
-				setShowCustomPresetDialog(true)
+				setShowPresetInputDialog(true)
 			} else if (value === 'MANAGE_PRESETS') {
 				setShowManagingPresetsDialog(true)
 				setSelectedPreset(null)
@@ -178,8 +181,8 @@ const Plugin = () => {
 			}
 		} else {
 			if (value !== 'RESET_DEFAULT') {
-				let data: any
-				const updatedPresets = [...userPresets].filter(
+				let data: Array<PresetOption>
+				const updatedPresets = [...presets].filter(
 					(e) => e.value !== value
 				)
 				if (!updatedPresets.length) {
@@ -187,7 +190,7 @@ const Plugin = () => {
 				} else {
 					data = [...updatedPresets]
 				}
-				emitUserPresetUpdate(data)
+				emitPresetUpdateToPlugin(data)
 			} else {
 				emit('EMIT_PRESET_RESET_TO_PLUGIN')
 			}
@@ -202,102 +205,101 @@ const Plugin = () => {
 		setCustomPresetName(value)
 	}
 
-	function handleCustomPresetDialogApply() {
-		if (customPresetName.length > 24) return
+	function handleCustomPresetDialogApply(): void {
+		if (customPresetName.length > 24) {
+			const errorKey: ErrorKey = 'PRESET_INPUT_TOO_MANY_CHARS'
+			emitErrorToPlugin(errorKey)
+			return
+		}
 
 		let data
 		const presetName = customPresetName || customPresetPlaceholder
-		const newPreset = { children: presetName, ...tempCustomPreset }
-		if ([...userPresets].some((el) => el.header)) {
+		const newPreset = { children: presetName, ...customPresetRef }
+		if ([...presets].some((el) => el.header)) {
 			data = [newPreset]
 		} else {
-			data = [...userPresets, newPreset]
+			data = [...presets, newPreset]
 		}
-		emitUserPresetUpdate(data)
+		emitPresetUpdateToPlugin(data)
 		resetCustomPresetDialog()
 	}
 
-	function handleMouseDownOutside(): void {
-		setShowManagingPresetsDialog(false)
-		resetCustomPresetDialog()
-	}
-
-	function resetCustomPresetDialog() {
-		setShowCustomPresetDialog(false)
-		setTempCustomPreset(null)
+	function resetCustomPresetDialog(): void {
+		setShowPresetInputDialog(false)
+		setCustomPresetRef(null)
 		setCustomPresetName('')
 	}
 
 	function validateCustomPresetInput(value: string): string | boolean {
-		return value !== ''
+		//FIXME- Validates on apply and thus no err message is sent
+		return value.length < 24
 	}
 
-	function emitUserPresetUpdate(userPresets: Array<DropdownOption>): void {
-		emit('EMIT_PRESETS_TO_PLUGIN', userPresets)
+	/**
+	 *  Handle emits to plugin and response from plugin
+	 */
+	function emitPresetUpdateToPlugin(presets: Array<PresetOption>): void {
+		emit('EMIT_PRESETS_TO_PLUGIN', presets)
+	}
+
+	function emitErrorToPlugin(key: ErrorKey): void {
+		//FIXME- Validates on apply and thus no err message is sent
+		emit('EMIT_ERROR_TO_PLUGIN', key)
 	}
 
 	// TODO: Type.
 	function handleResponseFromPlugin(response: Array<any> | undefined): void {
 		if (response) {
 			if (!response.length) {
-				console.log('hit')
-				setUserPresets(NO_PRESETS_OPTION)
+				setPresets(NO_PRESETS_OPTION)
 			} else {
-				console.log(response)
-				if (response.length >= userPresets.length) {
-					console.log('Booya')
+				//FIXME - get ref to previous value
+				if (response.length >= presets.length) {
 					setSelectedPreset(response[response.length - 1].value)
 				}
-				setUserPresets([...response])
+				setPresets([...response])
 			}
 		}
 	}
 
+	// Dialogs are cancelled by clicking outside of element
+	const ref = useRef<HTMLDivElement>(null)
 	useMouseDownOutside({
 		onMouseDownOutside: () => handleMouseDownOutside(),
 		ref
 	})
+	function handleMouseDownOutside(): void {
+		setShowManagingPresetsDialog(false)
+		resetCustomPresetDialog()
+	}
 
 	return (
 		<Container>
 			<Columns>
 				<Dropdown
 					value={easingType}
-					onChange={(e) => setEasingType(e.currentTarget.value)}
+					onChange={(e) =>
+						setEasingType(e.currentTarget.value as EasingType)
+					}
 					options={EASING_TYPE_OPTIONS}
 				/>
 				<div ref={ref} style={{ position: 'relative' }}>
-					<div
-						class={`${style.presetInput} ${
-							!showCustomPresetDialog && style.isHidden
-						}`}>
-						<div class={style.header}>Enter name</div>
-						<Textbox
-							// FIXME: Textbox doesn't focus after first time
-							{...(showCustomPresetDialog &&
-								useFocus(showCustomPresetDialog))}
-							value={customPresetName}
-							onInput={handleCustomPresetInput}
-							validateOnBlur={validateCustomPresetInput}
-							placeholder={customPresetPlaceholder}
-						/>
-						<Columns>
-							<Button
-								fullWidth
-								onClick={handleCustomPresetDialogApply}>
-								Add
-							</Button>
-						</Columns>
-					</div>
-
+					<PresetInput
+						showInputDialog={showPresetInputDialog}
+						value={customPresetName}
+						placeholder={customPresetPlaceholder}
+						onInput={handleCustomPresetInput}
+						validateOnBlur={validateCustomPresetInput}
+						onApply={handleCustomPresetDialogApply}
+					/>
 					<PresetMenu
 						value={selectedPreset}
 						placeholder={
 							!hasInteractedWithPresetMenu
-								? PLACEHOLDER_BEFORE_INTERACTION
-								: PLACEHOLDER_AFTER_INTERACTION
+								? PLACEHOLDER_BEFORE_INTERACTION_COPY
+								: PLACEHOLDER_AFTER_INTERACTION_COPY
 						}
-						userPresets={userPresets}
+						presets={presets}
 						showManagingPresetsDialog={showManagingPresetsDialog}
 						onValueChange={handlePresetMenuChange}
 					/>
