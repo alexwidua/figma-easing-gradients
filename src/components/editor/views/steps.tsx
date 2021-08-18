@@ -47,8 +47,8 @@ const Curve = ({ steps = 6, jump = 'skip-none', onMouseDown }: any) => {
 			/>
 			{/* terminal points */}
 			<g>
-				<circle class={style.point} cx="0" cy="1" r="0.015" />
-				<circle class={style.point} cx="1" cy="0" r="0.015" />
+				<circle class={style.point} cx="0" cy="1" r="0.01" />
+				<circle class={style.point} cx="1" cy="0" r="0.01" />
 			</g>
 		</svg>
 	)

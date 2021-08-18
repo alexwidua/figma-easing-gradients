@@ -6,7 +6,7 @@
 	justify-content: center;
 	width: 100%;
 	padding: 32px;
-	border: 1px var(--color-black) solid;
+	border: 1px solid var(--color-black-6-translucent);
 	border-radius: var(--border-radius-6);
 }
 
@@ -14,7 +14,7 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
-	border: 1px solid var(--color-silver);
+	border: 1px solid var(--color-black-6-translucent);
 	box-shadow: inset 0px 0px 0px 1px var(--color-silver);
 	user-select: none;
 }
@@ -48,7 +48,7 @@
 
 .path {
 	fill: none;
-	stroke-width: 2px;
+	stroke-width: 1px;
 	stroke-linecap: round;
 	stroke: var(--color-black);
 }
@@ -62,7 +62,7 @@
 }
 
 .point {
-	fill: var(--color-white);
+	fill: var(--color-black);
 	stroke: var(--color-black);
 	stroke-width: 0.005;
 }
