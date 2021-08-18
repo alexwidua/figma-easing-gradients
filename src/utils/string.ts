@@ -31,27 +31,27 @@ function getRandStrFromArr(arr: Array<string>): string {
 	return arr[Math.floor(Math.random() * arr.length)]
 }
 
-const CURVE = ['curve', 'slope', 'incline', 'bézier', 'descent']
-const LINEAR = ['linear', 'straight']
-const GENTLE = ['gentle', 'mellow', 'tame', 'soft', 'calm', 'serene']
+const CURVE = ['Curve', 'Slope', 'Incline', 'Bézier', 'Descent']
+const LINEAR = ['Linear', 'Straight']
+const GENTLE = ['Gentle', 'Mellow', 'Tame', 'Soft', 'Calm']
 const CONCAVE = [
-	'gradual',
-	'concave',
-	'half-pipey',
-	'acclivous',
-	'ascending',
-	'indented',
-	'hollow'
+	'Gradual',
+	'Concave',
+	'Half-pipey',
+	'Acclivous',
+	'Ascending',
+	'Indented',
+	'Hollow'
 ]
 
 const CONVEX = [
-	'extened',
-	'expanded',
-	'bulbous',
-	'inflated',
-	'bloated',
-	'protuberant',
-	'bulged'
+	'Extened',
+	'Expanded',
+	'Bulbous',
+	'Inflated',
+	'Bloated',
+	'Protuberant',
+	'Bulged'
 ]
-const PLANAR = ['smooth', 'flattened', 'planar', 'eased']
-const STEEP = ['steep', 'scarped', 'precipitous', 'vertiginous', 'sheer']
+const PLANAR = ['Smooth', 'Flattened', 'Planar', 'Eased']
+const STEEP = ['Steep', 'Scarped', 'Precipitous', 'Vertiginous', 'Sheer']
