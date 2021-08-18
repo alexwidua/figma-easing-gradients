@@ -1,7 +1,7 @@
 import chroma, { Color } from 'chroma-js'
 
 /**
- * Utility that returns an RGBA object with the channel range normalized from 0..255 to 0..1
+ * Transforms RGBA to GLSL vec3 value (normalizes 0..255 to 0..1)
  * @param {ColorStop} colorStop Figma color stop
  */
 export function gl(colorStop: ColorStop): Color {
