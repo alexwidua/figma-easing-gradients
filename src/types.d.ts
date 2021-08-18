@@ -1,13 +1,7 @@
-// import {
-// 	DropdownOptionHeader,
-// 	DropdownOptionValue,
-// 	DropdownOptionSeparator
-// } from '@create-figma-plugin/ui'
-// import { ComponentChildren } from 'preact'
-
 /**
- * Data that is applied to the plugin's UI window.
+ * TODO. Clean this file up.
  */
+
 interface UISettings {
 	readonly height: number
 	readonly width: number
@@ -31,12 +25,6 @@ type EditorChange = {
 }
 
 type EditorInputIndex = -1 | 0 | 1 | 2
-
-// type PresetOption = {
-// 	children: import('preact').ComponentChildren
-// 	value: string
-// 	matrix: Matrix
-// }
 
 type SelectionState =
 	| 'VALID'
@@ -76,3 +64,5 @@ type PresetOptionKey =
 	| GeneratedCustomPresetKey
 
 type GeneratedCustomPresetKey = `CUSTOM_${string}`
+
+type PresetMessage = 'ADD' | 'REMOVE'

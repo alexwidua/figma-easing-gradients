@@ -39,7 +39,7 @@ const ERROR_MAP: ErrorMap = {
 export default function () {
 	const ui: UISettings = { width: 280, height: 538 }
 	showUI(ui)
-	initiallyEmitPresetsToUI()
+	handleInitialPresetEmitToUI()
 
 	let selectionRef: any
 	let cloneRef: any
@@ -108,11 +108,7 @@ export default function () {
 
 	function handleSelectionChange() {
 		const selectionState = validateSelection(figma.currentPage.selection)
-		if (
-			selectionState.match(
-				/^(EMPTY|MULTIPLE_ELEMENTS|NO_GRADIENT_FILL|INVALID_TYPE)$/
-			)
-		) {
+		if (selectionState !== 'VALID') {
 			cleanUpCanvasPreview()
 		} else {
 			const selection = figma.currentPage.selection[0]
@@ -148,7 +144,7 @@ export default function () {
 	/**
 	 * Handle preset getting/setting
 	 */
-	async function initiallyEmitPresetsToUI() {
+	async function handleInitialPresetEmitToUI() {
 		getValueFromStoreOrInit(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
 			.then((response) => {
 				emit('INITIALLY_EMIT_PRESETS_TO_UI', response)
@@ -160,17 +156,19 @@ export default function () {
 			})
 	}
 
-	async function receivePresetsFromUI(presets: any) {
+	async function handleReceivePresetsFromUI(data: any) {
+		console.log(data)
+		const { presets, message } = data
 		setValueToStorage(STORAGE_KEY_PRESETS, presets)
 			.then((response) => {
-				emit('RESPOND_TO_PRESETS_UPDATE', response)
+				emit('RESPOND_TO_PRESETS_UPDATE', { response, message })
 			})
 			.catch(() => {
 				figma.notify(`Couldn't save preset, please try again.`)
 			})
 	}
 
-	async function resetPresetsToDefault() {
+	async function handleResetPresetsToDefault() {
 		setValueToStorage(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
 			.then((response) => {
 				emit('RESPOND_TO_PRESETS_UPDATE', response)
@@ -185,8 +183,8 @@ export default function () {
 	 */
 	on('UPDATE_FROM_UI', handleUpdate)
 	on('APPLY_EASING_FUNCTION', applyEasingFunction)
-	on('EMIT_PRESETS_TO_PLUGIN', receivePresetsFromUI)
-	on('EMIT_PRESET_RESET_TO_PLUGIN', resetPresetsToDefault)
+	on('EMIT_PRESETS_TO_PLUGIN', handleReceivePresetsFromUI)
+	on('EMIT_PRESET_RESET_TO_PLUGIN', handleResetPresetsToDefault)
 	on('EMIT_ERROR_TO_PLUGIN', handleErrorMessage)
 	figma.on('selectionchange', handleSelectionChange)
 	figma.on('close', cleanUpCanvasPreview)

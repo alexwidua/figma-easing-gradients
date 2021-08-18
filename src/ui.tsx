@@ -61,9 +61,8 @@ const Plugin = () => {
 	const [presets, setPresets] = useState<any>(NO_PRESETS_OPTION)
 
 	// used as reference for custom preset name input
-	const [customPresetRef, setCustomPresetRef] = useState<PresetOption | null>(
-		null
-	)
+	const [tempCustomPresetStore, setTempCustomPresetStore] =
+		useState<PresetOption | null>(null)
 	const [customPresetName, setCustomPresetName] = useState<string>('')
 	const [customPresetPlaceholder, setCustomPresetPlaceholder] =
 		useState<string>('')
@@ -78,6 +77,8 @@ const Plugin = () => {
 	const [jump, setJump] = useState<string>('skip-none')
 	const [selectionState, setSelectionState] =
 		useState<SelectionState>('INVALID_TYPE')
+
+	const test = useRef<any>(presets)
 
 	// data emitted to plugin
 	const messageData = { type: easingType, matrix, steps, skip: jump }
@@ -170,7 +171,7 @@ const Plugin = () => {
 					matrix: [...matrix]
 				}
 				const placeholder = getCurveSynonym([...matrix])
-				setCustomPresetRef(newPreset)
+				setTempCustomPresetStore(newPreset)
 				setCustomPresetPlaceholder(placeholder)
 				setShowPresetInputDialog(true)
 			} else if (value === 'MANAGE_PRESETS') {
@@ -190,7 +191,7 @@ const Plugin = () => {
 				} else {
 					data = [...updatedPresets]
 				}
-				emitPresetUpdateToPlugin(data)
+				emitPresetUpdateToPlugin(data, 'REMOVE')
 			} else {
 				emit('EMIT_PRESET_RESET_TO_PLUGIN')
 			}
@@ -214,32 +215,30 @@ const Plugin = () => {
 
 		let data
 		const presetName = customPresetName || customPresetPlaceholder
-		const newPreset = { children: presetName, ...customPresetRef }
+		const newPreset = { children: presetName, ...tempCustomPresetStore }
 		if ([...presets].some((el) => el.header)) {
 			data = [newPreset]
 		} else {
 			data = [...presets, newPreset]
 		}
-		emitPresetUpdateToPlugin(data)
+		emitPresetUpdateToPlugin(data, 'ADD')
 		resetCustomPresetDialog()
 	}
 
 	function resetCustomPresetDialog(): void {
 		setShowPresetInputDialog(false)
-		setCustomPresetRef(null)
+		setTempCustomPresetStore(null)
 		setCustomPresetName('')
-	}
-
-	function validateCustomPresetInput(value: string): string | boolean {
-		//FIXME- Validates on apply and thus no err message is sent
-		return value.length < 24
 	}
 
 	/**
 	 *  Handle emits to plugin and response from plugin
 	 */
-	function emitPresetUpdateToPlugin(presets: Array<PresetOption>): void {
-		emit('EMIT_PRESETS_TO_PLUGIN', presets)
+	function emitPresetUpdateToPlugin(
+		presets: Array<PresetOption>,
+		message: PresetMessage
+	): void {
+		emit('EMIT_PRESETS_TO_PLUGIN', { presets, message })
 	}
 
 	function emitErrorToPlugin(key: ErrorKey): void {
@@ -248,16 +247,16 @@ const Plugin = () => {
 	}
 
 	// TODO: Type.
-	function handleResponseFromPlugin(response: Array<any> | undefined): void {
+	function handleResponseFromPlugin(data: any): void {
+		const { response, message } = data
 		if (response) {
 			if (!response.length) {
 				setPresets(NO_PRESETS_OPTION)
 			} else {
-				//FIXME - get ref to previous value
-				if (response.length >= presets.length) {
+				setPresets([...response])
+				if (message === 'ADD') {
 					setSelectedPreset(response[response.length - 1].value)
 				}
-				setPresets([...response])
 			}
 		}
 	}
@@ -289,7 +288,6 @@ const Plugin = () => {
 						value={customPresetName}
 						placeholder={customPresetPlaceholder}
 						onInput={handleCustomPresetInput}
-						validateOnBlur={validateCustomPresetInput}
 						onApply={handleCustomPresetDialogApply}
 					/>
 					<PresetMenu
