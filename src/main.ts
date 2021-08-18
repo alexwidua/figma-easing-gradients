@@ -53,7 +53,7 @@ const ERROR_MAP: ErrorMap = {
 // TODO: Typings
 
 export default function () {
-	const ui: UISettings = { width: 280, height: 538 }
+	const ui: UISettings = { width: 280, height: 432 }
 	showUI(ui)
 	handleInitialPresetEmitToUI()
 
