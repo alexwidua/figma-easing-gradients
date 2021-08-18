@@ -1,13 +1,20 @@
-import { nodeIsGeometryMixin } from './utils/node'
-import { isGradientFill, interpolateColorStops } from './utils/gradient'
-import { validateSelection } from './utils/selection'
-import { getValueFromStoreOrInit, setValueToStorage } from './utils/storage'
+import {
+	nodeIsGeometryMixin,
+	isGradientFill,
+	interpolateColorStops,
+	validateSelection,
+	getValueFromStoreOrInit,
+	setValueToStorage,
+	clampNumber
+} from './utils'
 import {
 	on,
 	emit,
 	showUI,
 	cloneObject,
-	insertBeforeNode
+	insertBeforeNode,
+	insertAfterNode,
+	collapseLayer
 } from '@create-figma-plugin/utilities'
 
 const STORAGE_KEY_PRESETS = 'easing-gradients-dev-210818'
@@ -52,13 +59,15 @@ const ERROR_MAP: ErrorMap = {
 
 // TODO: Typings
 
-export default function () {
+export default async function () {
 	const ui: UISettings = { width: 280, height: 432 }
+	await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' })
 	showUI(ui)
 	handleInitialPresetEmitToUI()
 
 	let selectionRef: any
-	let cloneRef: any
+	let cloneRef: SceneNode | undefined
+	let labelRef: GroupNode | undefined
 	let state: EasingOptions = {
 		type: 'CURVE',
 		matrix: [
@@ -72,15 +81,17 @@ export default function () {
 	/**
 	 * Functions
 	 */
-	function updateGradientFill(node: GeometryMixin): void {
-		if (!node) return console.error('No node.')
+	function updateGradientFill(node: SceneNode): void {
+		if (!node) return console.error(`Couldn't get node.`)
 		if (!nodeIsGeometryMixin(node))
-			return console.warn('Node is not a shape.')
+			return console.warn('Selected node is not a shape.')
 		const fills = node.fills as Paint[]
 
 		fills.forEach((fillProperty, index) => {
 			if (!isGradientFill(fillProperty))
-				return console.warn('Node does not contain gradient fills.')
+				return console.warn(
+					'Selected node does not contain gradient fills.'
+				)
 
 			// TODO: Type tempNode
 			const tempNode: any = cloneObject(node.fills)
@@ -99,13 +110,59 @@ export default function () {
 		figma.closePlugin()
 	}
 
+	// TODO: Clamp number to avoid >0.1 sizes
+	function createPreviewLabel(): GroupNode | void {
+		if (!cloneRef) return
+		let arr = []
+		const baseHeight = 12
+		const baseWidth = 34
+		const zoom = figma.viewport.zoom / 1.6 // adjust viewport-relative scaling, guessed value
+		const width = baseWidth / zoom
+		const height = baseHeight / zoom
+		const fontSize = 8 / zoom
+
+		const rect = figma.createRectangle()
+		rect.resizeWithoutConstraints(width, height)
+		rect.fills = [
+			{ type: 'SOLID', color: { r: 0.094, g: 0.627, b: 0.984 } }
+		] // #18A0FB aka. Figma blue
+		rect.cornerRadius = height / 8
+
+		const text = figma.createText()
+		text.resizeWithoutConstraints(width, height)
+		text.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }] //#fff
+		text.fontSize = fontSize
+		text.textAlignHorizontal = 'CENTER'
+		text.textAlignVertical = 'CENTER'
+		text.characters = 'Preview'
+
+		arr.push(rect, text)
+
+		const group = figma.group(arr, figma.currentPage)
+		group.name = '[Preview] Label'
+		const padding = 4
+		group.x = cloneRef.x
+		group.y = cloneRef.y - height - padding
+
+		collapseLayer(group)
+		return group
+	}
+
 	function updateCanvasPreview(node: SceneNode): void {
 		if (!selectionRef || !cloneRef) return
 		selectionRef.locked = true
 		selectionRef.visible = false
 
-		cloneRef.name = '[Preview] Easing Gradients'
-		insertBeforeNode(cloneRef, node)
+		cloneRef.locked = true
+
+		labelRef = createPreviewLabel() || undefined
+		if (labelRef) {
+			labelRef.locked = true
+
+			cloneRef.name = '[Preview] Easing Gradients'
+			insertAfterNode(cloneRef, node)
+			insertAfterNode(labelRef, node)
+		}
 		updateGradientFill(cloneRef)
 	}
 
@@ -116,6 +173,11 @@ export default function () {
 
 		cloneRef.remove()
 		cloneRef = undefined
+
+		if (labelRef) {
+			labelRef.remove()
+			labelRef = undefined
+		}
 	}
 
 	/**
@@ -129,8 +191,11 @@ export default function () {
 		} else {
 			const selection = figma.currentPage.selection[0]
 			if (cloneRef) {
+				// handle user selecting preview node via layer menu
 				if (selection.id === cloneRef.id) {
-					updateCanvasPreview(selection)
+					//updateCanvasPreview(selection)
+					cleanUpCanvasPreview()
+					figma.notify(`Cannot select the preview element.`)
 				} else {
 					cleanUpCanvasPreview()
 					selectionRef = selection
