@@ -22,7 +22,16 @@ import {
 } from './utils'
 import { Editor, PresetMenu, PresetInput } from './components'
 
-import { MatrixIcon, CurveIcon, StepIcon } from './icons'
+import {
+	TextboxMatrixIcon,
+	TextboxStepIcon,
+	DropdownJumpNoneIcon,
+	DropdownJumpBothIcon,
+	DropdownJumpStartIcon,
+	DropdownJumpEndIcon,
+	CurveIcon,
+	StepIcon
+} from './icons'
 
 // types
 import { DropdownOption } from '@create-figma-plugin/ui'
@@ -35,12 +44,19 @@ const EASING_TYPE_OPTIONS: Array<DropdownOption> = [
 	{ children: 'Curve', value: 'CURVE' },
 	{ children: 'Steps', value: 'STEPS' }
 ]
+
 const JUMP_OPTIONS: Array<DropdownOption> = [
 	{ children: 'jump-none', value: 'skip-none' },
 	{ children: 'jump-both', value: 'skip-both' },
 	{ children: 'jump-start', value: 'start' },
 	{ children: 'jump-end', value: 'end' }
 ]
+const JUMP_ICON: any = {
+	'skip-none': DropdownJumpNoneIcon,
+	'skip-both': DropdownJumpBothIcon,
+	start: DropdownJumpStartIcon,
+	end: DropdownJumpEndIcon
+}
 
 const HINT_MAP: SelectionStateMap = {
 	EMPTY: 'No element selected 👀',
@@ -330,17 +346,19 @@ const Plugin = () => {
 					value={[...matrix[0], ...matrix[1]]
 						.map((vec) => showDecimals(vec, 2))
 						.join(', ')}
-					icon={MatrixIcon}
+					icon={TextboxMatrixIcon}
 					onBlurCapture={handleMatrixInput}
 				/>
 			) : (
-				<Columns>
+				<Columns space="extraSmall">
 					<TextboxNumeric
+						icon={TextboxStepIcon}
 						onInput={handleStepInput}
 						value={steps.toString()}
 					/>
 					<Dropdown
 						value={jump}
+						icon={JUMP_ICON[jump]}
 						onChange={(e) => setJump(e.currentTarget.value)}
 						options={JUMP_OPTIONS}
 					/>
