@@ -10,22 +10,38 @@ import {
 	insertBeforeNode
 } from '@create-figma-plugin/utilities'
 
-const STORAGE_KEY_PRESETS = 'easing-gradients-11'
+const STORAGE_KEY_PRESETS = 'easing-gradients-dev-210818'
 const DEFAULT_PRESETS = [
 	{
-		children: 'Ease example 1',
-		value: 'EASE_1',
+		children: 'Ease-in-out',
+		value: 'EASE_IN_OUT',
 		matrix: [
-			[0.22, 0.0],
-			[0.18, 1.0]
+			[0.42, 0.0],
+			[0.58, 1.0]
 		]
 	},
 	{
-		children: 'Ease example 2',
-		value: 'EASE_2',
+		children: 'Ease-in',
+		value: 'EASE_IN',
 		matrix: [
-			[0.82, 0.0],
-			[0.68, 1.0]
+			[0.42, 0.0],
+			[1.0, 1.0]
+		]
+	},
+	{
+		children: 'Ease-out',
+		value: 'EASE_OUT',
+		matrix: [
+			[0.0, 0.0],
+			[0.58, 1.0]
+		]
+	},
+	{
+		children: 'Ease',
+		value: 'EASE',
+		matrix: [
+			[0.25, 0.1],
+			[0.25, 1.0]
 		]
 	}
 ]
@@ -45,10 +61,7 @@ export default function () {
 	let cloneRef: any
 	let state: EasingOptions = {
 		type: 'CURVE',
-		matrix: [
-			[0.42, 0.0],
-			[0.58, 1.0]
-		],
+		matrix: DEFAULT_PRESETS[0].matrix,
 		steps: 8,
 		skip: 'skip-none'
 	}
@@ -93,7 +106,7 @@ export default function () {
 		updateGradientFill(cloneRef)
 	}
 
-	function cleanUpCanvasPreview(): Function | void {
+	function cleanUpCanvasPreview(): void {
 		if (!selectionRef || !cloneRef) return
 		selectionRef.locked = false
 		selectionRef.visible = true
