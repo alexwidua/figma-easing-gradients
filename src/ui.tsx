@@ -12,7 +12,8 @@ import {
 	TextboxNumeric,
 	Dropdown,
 	useMouseDownOutside,
-	VerticalSpace
+	VerticalSpace,
+	MiddleAlign
 } from '@create-figma-plugin/ui'
 import {
 	debounce,
@@ -59,11 +60,11 @@ const JUMP_ICON: any = {
 }
 
 const HINT_MAP: SelectionStateMap = {
-	EMPTY: 'No element selected 👀',
-	MULTIPLE_ELEMENTS: 'Do not select more than one element',
-	INVALID_TYPE: 'Selected element type is not supported',
-	NO_GRADIENT_FILL: 'Selected element must have at least one gradient fill',
-	VALID: 'Applies the current easing function to the element'
+	EMPTY: 'No element selected.',
+	MULTIPLE_ELEMENTS: 'Do not select more than one element.',
+	INVALID_TYPE: 'Selected element type is not supported.',
+	NO_GRADIENT_FILL: 'Selected element must have at least one gradient fill.',
+	VALID: 'Applies the current easing function to the selected element.'
 }
 
 const DEFAULT_MATRIX = [
@@ -94,7 +95,7 @@ const Plugin = () => {
 	const [hasInteractedWithPresetMenu, setHasInteractedWithPresetMenu] =
 		useState<boolean>(false)
 	const [matrix, setMatrix] = useState<Matrix>(DEFAULT_MATRIX)
-	const [steps, setSteps] = useState<number>(2)
+	const [steps, setSteps] = useState<number>(8)
 	const [jump, setJump] = useState<string>('skip-none')
 	const [selectionState, setSelectionState] =
 		useState<SelectionState>('INVALID_TYPE')
@@ -379,13 +380,13 @@ const Plugin = () => {
 				Apply
 			</Button>
 			<VerticalSpace space="extraSmall" />
-			{/* <div style={{ height: 100 }}>
-				<MiddleAlign>Text</MiddleAlign>
-			</div> */}
-			<VerticalSpace space="extraSmall" />
-			<Text style={{ textAlign: 'center' }} muted>
-				{HINT_MAP[selectionState]}
-			</Text>
+			<div style={{ height: 36 }}>
+				<MiddleAlign>
+					<Text style={{ textAlign: 'center' }} muted>
+						{HINT_MAP[selectionState]}
+					</Text>
+				</MiddleAlign>
+			</div>
 		</Container>
 	)
 }
