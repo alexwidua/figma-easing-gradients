@@ -4,7 +4,7 @@ import { useFocus } from '../../hooks/useFocus'
 
 const MANAGE_PRESETS_HEAD_COPY = `Which preset to remove?`
 const MANAGE_PRESETS_RESET_COPY = `Reset presets to default`
-const MANAGE_PRESETS_ADD_PRESET_COPY = `Add current as preset`
+const MANAGE_PRESETS_ADD_PRESET_COPY = `Save current as preset`
 const MANAGE_PRESETS_ACTION_COPY = `Manage presets...`
 
 const MENU_OPTIONS: Array<PresetOption> = [
@@ -28,6 +28,11 @@ const PresetMenu = ({
 		{ header: MANAGE_PRESETS_HEAD_COPY },
 		...presets,
 		{ separator: true },
+		{ header: '' },
+		{ header: '' },
+		{ header: '' },
+		{ header: '' },
+		{ header: '' },
 		{ children: MANAGE_PRESETS_RESET_COPY, value: 'RESET_DEFAULT' }
 	]
 

@@ -1,4 +1,4 @@
 import { Editor } from './editor'
-import { PresetMenu, PresetInput } from './customPresets'
+import { PresetMenu, PresetInput } from './preset-menu'
 
 export { Editor, PresetMenu, PresetInput }
