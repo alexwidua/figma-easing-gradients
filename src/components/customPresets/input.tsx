@@ -10,7 +10,6 @@ const PresetInput = ({
 	value,
 	placeholder,
 	onInput,
-	validateOnBlur,
 	onApply
 }: any) => {
 	return (
@@ -23,7 +22,6 @@ const PresetInput = ({
 				value={value}
 				placeholder={placeholder}
 				onInput={onInput}
-				validateOnBlur={validateOnBlur}
 			/>
 			<Columns>
 				<Button fullWidth onClick={onApply}>
