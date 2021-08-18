@@ -100,8 +100,6 @@ const Plugin = () => {
 	const [selectionState, setSelectionState] =
 		useState<SelectionState>('INVALID_TYPE')
 
-	const test = useRef<any>(presets)
-
 	// data emitted to plugin
 	const messageData = { type: easingType, matrix, steps, skip: jump }
 
@@ -293,6 +291,15 @@ const Plugin = () => {
 		setShowManagingPresetsDialog(false)
 		resetCustomPresetDialog()
 	}
+	function handlePresetMenuKeyDown(
+		e: JSX.TargetedKeyboardEvent<HTMLDivElement>
+	) {
+		if (e.key === 'Escape' || e.key === 'Tab') {
+			setShowManagingPresetsDialog(false)
+			resetCustomPresetDialog()
+			return
+		}
+	}
 
 	return (
 		<Container>
@@ -319,7 +326,8 @@ const Plugin = () => {
 						visibility:
 							easingType === 'CURVE' ? 'visible' : 'hidden',
 						pointerEvents: easingType === 'CURVE' ? 'all' : 'none'
-					}}>
+					}}
+					onKeyDown={handlePresetMenuKeyDown}>
 					<PresetInput
 						showInputDialog={showPresetInputDialog}
 						value={customPresetName}
