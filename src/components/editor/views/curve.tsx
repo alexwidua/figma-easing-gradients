@@ -1,7 +1,12 @@
 import { h } from 'preact'
 import style from '../style.css'
 
-const Curve = ({ matrix }: any) => {
+const Curve = ({
+	matrix = [
+		[0.0, 0.0],
+		[0.0, 0.0]
+	]
+}: any) => {
 	return (
 		<svg class={style.viewbox} viewBox="0 0 1 1" fill="none">
 			{/* diagonal line */}

@@ -3,7 +3,7 @@ import style from '../style.css'
 
 import easingCoordinates from 'easing-coordinates'
 
-const Curve = ({ steps = 6, jump = 'skip-none', onMouseDown }: any) => {
+const Steps = ({ steps = 6, jump = 'skip-none', onMouseDown }: any) => {
 	const getPolyPoints = (): string => {
 		const coords = easingCoordinates(`steps(${steps}, ${jump})`)
 		return coords.map((pos) => `${pos.x},${1 - pos.y}`).join(' ')
@@ -21,7 +21,7 @@ const Curve = ({ steps = 6, jump = 'skip-none', onMouseDown }: any) => {
 
 	return (
 		<svg
-			class={`${style.viewbox}`}
+			class={style.viewbox}
 			style={{ cursor: 'ew-resize' }}
 			viewBox="0 0 1 1"
 			fill="none"
@@ -54,4 +54,4 @@ const Curve = ({ steps = 6, jump = 'skip-none', onMouseDown }: any) => {
 	)
 }
 
-export default Curve
+export default Steps
