@@ -311,7 +311,14 @@ const Plugin = () => {
 					}
 					options={EASING_TYPE_OPTIONS}
 				/>
-				<div ref={ref} style={{ position: 'relative' }}>
+				<div
+					ref={ref}
+					style={{
+						position: 'relative',
+						visibility:
+							easingType === 'CURVE' ? 'visible' : 'hidden',
+						pointerEvents: easingType === 'CURVE' ? 'all' : 'none'
+					}}>
 					<PresetInput
 						showInputDialog={showPresetInputDialog}
 						value={customPresetName}
