@@ -7,10 +7,12 @@ import {
 	Button,
 	Container,
 	Columns,
+	Text,
 	Textbox,
 	TextboxNumeric,
 	Dropdown,
-	useMouseDownOutside
+	useMouseDownOutside,
+	VerticalSpace
 } from '@create-figma-plugin/ui'
 import {
 	debounce,
@@ -37,12 +39,13 @@ const JUMP_OPTIONS: Array<DropdownOption> = [
 	{ children: 'jump-start', value: 'start' },
 	{ children: 'jump-end', value: 'end' }
 ]
-const BUTTON_MAP: SelectionStateMap = {
-	EMPTY: 'No element selected',
-	MULTIPLE_ELEMENTS: 'Select only one element',
-	INVALID_TYPE: 'Element type not supported',
-	NO_GRADIENT_FILL: 'Element has no gradient fill',
-	VALID: 'Apply easing'
+
+const HINT_MAP: SelectionStateMap = {
+	EMPTY: 'No element selected 👀',
+	MULTIPLE_ELEMENTS: 'Do not select more than one element',
+	INVALID_TYPE: 'Selected element type is not supported',
+	NO_GRADIENT_FILL: 'Selected element must have at least one gradient fill',
+	VALID: 'Applies the current easing function to the element'
 }
 
 const DEFAULT_MATRIX = [
@@ -153,7 +156,7 @@ const Plugin = () => {
 	/**
 	 * Debounce gradient updates
 	 */
-	const debounceWaitTime = 200 //ms
+	const debounceWaitTime = 100 //ms
 	const debounceNumItemsChange = useCallback(
 		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
 		[]
@@ -274,7 +277,8 @@ const Plugin = () => {
 
 	return (
 		<Container>
-			<Columns>
+			<VerticalSpace space="extraSmall" />
+			<Columns space="extraSmall">
 				<Dropdown
 					value={easingType}
 					onChange={(e) =>
@@ -303,6 +307,7 @@ const Plugin = () => {
 					/>
 				</div>
 			</Columns>
+			<VerticalSpace space="extraSmall" />
 			<Editor
 				easingType={easingType}
 				matrix={matrix}
@@ -310,6 +315,7 @@ const Plugin = () => {
 				jump={jump}
 				onEditorChange={handleEditorChange}
 			/>
+			<VerticalSpace space="extraSmall" />
 			{easingType === 'CURVE' ? (
 				<Textbox
 					value={[...matrix[0], ...matrix[1]]
@@ -330,12 +336,21 @@ const Plugin = () => {
 					/>
 				</Columns>
 			)}
+			<VerticalSpace space="extraSmall" />
 			<Button
 				fullWidth
 				onClick={() => emit('APPLY_EASING_FUNCTION')}
 				disabled={selectionState !== 'VALID'}>
-				{BUTTON_MAP[selectionState]}
+				Apply
 			</Button>
+			<VerticalSpace space="extraSmall" />
+			{/* <div style={{ height: 100 }}>
+				<MiddleAlign>Text</MiddleAlign>
+			</div> */}
+			<VerticalSpace space="extraSmall" />
+			<Text style={{ textAlign: 'center' }} muted>
+				{HINT_MAP[selectionState]}
+			</Text>
 		</Container>
 	)
 }
