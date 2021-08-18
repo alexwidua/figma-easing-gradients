@@ -5,7 +5,7 @@
 	align-items: center;
 	justify-content: center;
 	width: 100%;
-	padding: 48px;
+	padding: 36px;
 	border: 1px solid var(--color-black-6-translucent);
 	border-radius: var(--border-radius-6);
 }
