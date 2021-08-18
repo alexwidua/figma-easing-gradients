@@ -22,6 +22,8 @@ import {
 } from './utils'
 import { Editor, PresetMenu, PresetInput } from './components'
 
+import { MatrixIcon, CurveIcon, StepIcon } from './icons'
+
 // types
 import { DropdownOption } from '@create-figma-plugin/ui'
 
@@ -49,8 +51,8 @@ const HINT_MAP: SelectionStateMap = {
 }
 
 const DEFAULT_MATRIX = [
-	[0.42, 0.0],
-	[0.58, 1.0]
+	[0.65, 0.0],
+	[0.35, 1.0]
 ]
 
 const Plugin = () => {
@@ -284,6 +286,13 @@ const Plugin = () => {
 					onChange={(e) =>
 						setEasingType(e.currentTarget.value as EasingType)
 					}
+					icon={
+						easingType === 'CURVE' ? (
+							<CurveIcon size={12} matrix={matrix} />
+						) : (
+							<StepIcon size={12} steps={steps} jump={jump} />
+						)
+					}
 					options={EASING_TYPE_OPTIONS}
 				/>
 				<div ref={ref} style={{ position: 'relative' }}>
@@ -321,6 +330,7 @@ const Plugin = () => {
 					value={[...matrix[0], ...matrix[1]]
 						.map((vec) => showDecimals(vec, 2))
 						.join(', ')}
+					icon={MatrixIcon}
 					onBlurCapture={handleMatrixInput}
 				/>
 			) : (
