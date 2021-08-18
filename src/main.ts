@@ -61,7 +61,10 @@ export default function () {
 	let cloneRef: any
 	let state: EasingOptions = {
 		type: 'CURVE',
-		matrix: DEFAULT_PRESETS[0].matrix,
+		matrix: [
+			[0.65, 0.0],
+			[0.35, 1.0]
+		],
 		steps: 8,
 		skip: 'skip-none'
 	}
