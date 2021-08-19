@@ -1,27 +1,37 @@
 import {
 	nodeIsGeometryMixin,
-	isGradientFill,
+	isGradientFillWithMultipleStops,
 	interpolateColorStops,
 	validateSelection,
 	getValueFromStoreOrInit,
 	setValueToStorage,
-	clampNumber
+	handleNotificationFromUI
 } from './utils'
 import {
 	on,
 	emit,
 	showUI,
 	cloneObject,
-	insertBeforeNode,
 	insertAfterNode,
-	collapseLayer
+	collapseLayer,
+	EventHandler
 } from '@create-figma-plugin/utilities'
 
-const STORAGE_KEY_PRESETS = 'easing-gradients-dev-210818'
-const DEFAULT_PRESETS = [
+type StorageKey = `easing-gradients-${string | number}`
+
+export type EasingType = 'CURVE' | 'STEPS'
+export type EasingOptions = {
+	type: EasingType
+	matrix: Matrix
+	steps: number
+	skip: string
+}
+
+const STORAGE_KEY_PRESETS: StorageKey = 'easing-gradients-dev-210818'
+const DEFAULT_PRESETS: Array<PresetOptionValue> = [
 	{
 		children: 'Ease-in-out',
-		value: 'EASE_IN_OUT',
+		value: 'DEFAULT_EASE_IN_OUT',
 		matrix: [
 			[0.42, 0.0],
 			[0.58, 1.0]
@@ -29,7 +39,7 @@ const DEFAULT_PRESETS = [
 	},
 	{
 		children: 'Ease-in',
-		value: 'EASE_IN',
+		value: 'DEFAULT_EASE_IN',
 		matrix: [
 			[0.42, 0.0],
 			[1.0, 1.0]
@@ -37,7 +47,7 @@ const DEFAULT_PRESETS = [
 	},
 	{
 		children: 'Ease-out',
-		value: 'EASE_OUT',
+		value: 'DEFAULT_EASE_OUT',
 		matrix: [
 			[0.0, 0.0],
 			[0.58, 1.0]
@@ -45,19 +55,14 @@ const DEFAULT_PRESETS = [
 	},
 	{
 		children: 'Ease',
-		value: 'EASE',
+		value: 'DEFAULT_EASE',
 		matrix: [
 			[0.25, 0.1],
 			[0.25, 1.0]
 		]
 	}
 ]
-
-const ERROR_MAP: ErrorMap = {
-	PRESET_INPUT_TOO_MANY_CHARS: 'Enter a name with less than 24 characters.'
-}
-
-// TODO: Typings
+const PREVIEW_ELEMENT_PREFIX = '[Preview]'
 
 export default async function () {
 	const ui: UISettings = { width: 280, height: 432 }
@@ -65,7 +70,7 @@ export default async function () {
 	showUI(ui)
 	handleInitialPresetEmitToUI()
 
-	let selectionRef: any
+	let selectionRef: SceneNode | undefined
 	let cloneRef: SceneNode | undefined
 	let labelRef: GroupNode | undefined
 	let state: EasingOptions = {
@@ -88,13 +93,13 @@ export default async function () {
 		const fills = node.fills as Paint[]
 
 		fills.forEach((fillProperty, index) => {
-			if (!isGradientFill(fillProperty))
+			if (!isGradientFillWithMultipleStops(fillProperty))
 				return console.warn(
 					'Selected node does not contain gradient fills.'
 				)
 
-			// TODO: Type tempNode
 			const tempNode: any = cloneObject(node.fills)
+
 			tempNode[index].gradientStops = interpolateColorStops(
 				fillProperty,
 				state
@@ -110,39 +115,39 @@ export default async function () {
 		figma.closePlugin()
 	}
 
-	// TODO: Clamp number to avoid >0.1 sizes
 	function createPreviewLabel(): GroupNode | void {
 		if (!cloneRef) return
-		let arr = []
+		let elements = []
 		const baseHeight = 12
 		const baseWidth = 34
 		const zoom = figma.viewport.zoom / 1.6 // adjust viewport-relative scaling, guessed value
 		const width = baseWidth / zoom
 		const height = baseHeight / zoom
-		const fontSize = 8 / zoom
+		const fontSize = Math.max(8 / zoom, 1)
 
-		const rect = figma.createRectangle()
+		const rect: RectangleNode = figma.createRectangle()
 		rect.resizeWithoutConstraints(width, height)
-		rect.fills = [
-			{ type: 'SOLID', color: { r: 0.094, g: 0.627, b: 0.984 } }
-		] // #18A0FB aka. Figma blue
+
+		const rectColor = { r: 0.094, g: 0.627, b: 0.984 } // #18A0FB aka. Figma blue
+		rect.fills = [{ type: 'SOLID', color: rectColor }]
 		rect.cornerRadius = height / 8
 
-		const text = figma.createText()
+		const text: TextNode = figma.createText()
 		text.resizeWithoutConstraints(width, height)
-		text.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }] //#fff
+		const textColor = { r: 1, g: 1, b: 1 } //#fff
+		text.fills = [{ type: 'SOLID', color: textColor }]
 		text.fontSize = fontSize
 		text.textAlignHorizontal = 'CENTER'
 		text.textAlignVertical = 'CENTER'
 		text.characters = 'Preview'
 
-		arr.push(rect, text)
+		elements.push(rect, text)
 
-		const group = figma.group(arr, figma.currentPage)
-		group.name = '[Preview] Label'
-		const padding = 4
+		const group: GroupNode = figma.group(elements, figma.currentPage)
+		group.name = `${PREVIEW_ELEMENT_PREFIX} Label`
+		const margin = 2 / zoom
 		group.x = cloneRef.x
-		group.y = cloneRef.y - height - padding
+		group.y = cloneRef.y - height - margin
 
 		collapseLayer(group)
 		return group
@@ -159,7 +164,7 @@ export default async function () {
 		if (labelRef) {
 			labelRef.locked = true
 
-			cloneRef.name = '[Preview] Easing Gradients'
+			cloneRef.name = `${PREVIEW_ELEMENT_PREFIX} Easing Gradients`
 			insertAfterNode(cloneRef, node)
 			insertAfterNode(labelRef, node)
 		}
@@ -183,7 +188,6 @@ export default async function () {
 	/**
 	 * Event handlers
 	 */
-
 	function handleSelectionChange() {
 		const selectionState = validateSelection(figma.currentPage.selection)
 		if (selectionState !== 'VALID') {
@@ -193,7 +197,6 @@ export default async function () {
 			if (cloneRef) {
 				// handle user selecting preview node via layer menu
 				if (selection.id === cloneRef.id) {
-					//updateCanvasPreview(selection)
 					cleanUpCanvasPreview()
 					figma.notify(`Cannot select the preview element.`)
 				} else {
@@ -217,17 +220,12 @@ export default async function () {
 		handleSelectionChange()
 	}
 
-	function handleErrorMessage(key: ErrorKey) {
-		const errorMsg = ERROR_MAP[key]
-		figma.notify(errorMsg)
-	}
-
 	/**
 	 * Handle preset getting/setting
 	 */
-	async function handleInitialPresetEmitToUI() {
+	async function handleInitialPresetEmitToUI(): Promise<void> {
 		getValueFromStoreOrInit(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
-			.then((response) => {
+			.then((response: PresetOptionValue) => {
 				emit('INITIALLY_EMIT_PRESETS_TO_UI', response)
 			})
 			.catch(() => {
@@ -237,11 +235,10 @@ export default async function () {
 			})
 	}
 
-	async function handleReceivePresetsFromUI(data: any) {
-		console.log(data)
+	async function handleReceivePresetsFromUI(data: any): Promise<void> {
 		const { presets, message } = data
 		setValueToStorage(STORAGE_KEY_PRESETS, presets)
-			.then((response) => {
+			.then((response: PresetOptionValue) => {
 				emit('RESPOND_TO_PRESETS_UPDATE', { response, message })
 			})
 			.catch(() => {
@@ -249,10 +246,13 @@ export default async function () {
 			})
 	}
 
-	async function handleResetPresetsToDefault() {
+	async function handleResetPresetsToDefault(): Promise<void> {
 		setValueToStorage(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
-			.then((response) => {
-				emit('RESPOND_TO_PRESETS_UPDATE', response)
+			.then((response: PresetOptionValue) => {
+				emit('RESPOND_TO_PRESETS_UPDATE', {
+					response,
+					message: 'RESET'
+				})
 			})
 			.catch(() => {
 				figma.notify(`Couldn't reset preset, please try again.`)
@@ -266,7 +266,7 @@ export default async function () {
 	on('APPLY_EASING_FUNCTION', applyEasingFunction)
 	on('EMIT_PRESETS_TO_PLUGIN', handleReceivePresetsFromUI)
 	on('EMIT_PRESET_RESET_TO_PLUGIN', handleResetPresetsToDefault)
-	on('EMIT_ERROR_TO_PLUGIN', handleErrorMessage)
+	on('EMIT_NOTIFICATION_TO_PLUGIN', handleNotificationFromUI)
 	figma.on('selectionchange', handleSelectionChange)
 	figma.on('close', cleanUpCanvasPreview)
 }

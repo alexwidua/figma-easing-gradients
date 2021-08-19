@@ -1,20 +1,20 @@
 import easingCoordinates from 'easing-coordinates'
 import chroma from 'chroma-js'
 import { gl } from './color'
+import { EasingType, EasingOptions } from '../main'
 
 /**
- * Checks if given fill is a gradient fill by searching for color stops.
- * @param fill : Figma paint layer
+ * Checks if given fill is a gradient fill with at least two color stops.
  * @returns false if fill isn't a gradient fill, ex. SolidPaint or ImagePaint
  */
-export function isGradientFill(fill: Paint): fill is GradientPaint {
-	return 'gradientStops' in fill
+export function isGradientFillWithMultipleStops(
+	fill: Paint
+): fill is GradientPaint {
+	return 'gradientStops' in fill && fill?.gradientStops?.length > 1
 }
 
 /**
  * Interpolates two color stops with a given set of coordinates or number fo steps.
- * @param fill - The to-be-eased Figma gradient fill layer
- * @param options
  * @returns Returns an array of color stops which represents the eased color gradient.
  */
 export function interpolateColorStops(

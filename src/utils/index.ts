@@ -1,16 +1,20 @@
 import { gl } from './color'
 import { debounce } from './debounce'
-import { isGradientFill, interpolateColorStops } from './gradient'
+import {
+	isGradientFillWithMultipleStops,
+	interpolateColorStops
+} from './gradient'
 import { nodeIsGeometryMixin, nodeHasGradientFill } from './node'
 import { showDecimals, clampNumber } from './number'
 import { validateSelection } from './selection'
 import { getValueFromStoreOrInit, setValueToStorage } from './storage'
 import { getRandomString, getCurveSynonym } from './string'
+import { handleNotificationFromUI } from './notification'
 
 export {
 	gl,
 	debounce,
-	isGradientFill,
+	isGradientFillWithMultipleStops,
 	interpolateColorStops,
 	nodeIsGeometryMixin,
 	nodeHasGradientFill,
@@ -20,5 +24,6 @@ export {
 	getValueFromStoreOrInit,
 	setValueToStorage,
 	getRandomString,
-	getCurveSynonym
+	getCurveSynonym,
+	handleNotificationFromUI
 }

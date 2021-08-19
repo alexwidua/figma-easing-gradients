@@ -1,4 +1,4 @@
-import { isGradientFill } from './gradient'
+import { isGradientFillWithMultipleStops } from './gradient'
 
 /**
  * Checks if selection is a valid geometry node by looking for fill properties.
@@ -18,5 +18,5 @@ export function nodeIsGeometryMixin(
  */
 export function nodeHasGradientFill(node: GeometryMixin) {
 	const fills = node.fills as Paint[]
-	return fills.findIndex((fill) => isGradientFill(fill)) > -1
+	return fills.findIndex((fill) => isGradientFillWithMultipleStops(fill)) > -1
 }
