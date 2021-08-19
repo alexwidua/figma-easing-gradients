@@ -36,6 +36,9 @@ import {
 
 // types
 import { DropdownOption } from '@create-figma-plugin/ui'
+import { NotificationKey } from './utils/notification'
+import { EasingType } from './main'
+import { EditorChange } from './components/editor/editor'
 
 const PLACEHOLDER_BEFORE_INTERACTION_COPY = 'Choose preset...'
 const PLACEHOLDER_AFTER_INTERACTION_COPY = 'Custom'
@@ -229,7 +232,7 @@ const Plugin = () => {
 	function handleCustomPresetDialogApply(): void {
 		if (customPresetName.length > 24) {
 			const errorKey: ErrorKey = 'PRESET_INPUT_TOO_MANY_CHARS'
-			emitErrorToPlugin(errorKey)
+			emitNotificationToPlugin(errorKey)
 			return
 		}
 
@@ -261,9 +264,8 @@ const Plugin = () => {
 		emit('EMIT_PRESETS_TO_PLUGIN', { presets, message })
 	}
 
-	function emitErrorToPlugin(key: ErrorKey): void {
-		//FIXME- Validates on apply and thus no err message is sent
-		emit('EMIT_ERROR_TO_PLUGIN', key)
+	function emitNotificationToPlugin(key: NotificationKey): void {
+		emit('EMIT_NOTIFICATION_TO_PLUGIN', key)
 	}
 
 	// TODO: Type.
