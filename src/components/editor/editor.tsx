@@ -1,10 +1,16 @@
-import { h, JSX } from 'preact'
-import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { h } from 'preact'
+import { useState, useRef } from 'preact/hooks'
 import style from './style.css'
-
 import Thumb from './thumb'
-import Curve from './views/curve'
-import Steps from './views/steps'
+import { Curve, Steps } from './views'
+import { EasingType, Matrix, SkipOption } from '../../main'
+
+export type EditorChange = {
+	type: EasingType
+	thumb?: { index: EditorInputIndex; vector: number[] }
+	steps?: number
+}
+type EditorInputIndex = -1 | 0 | 1 | 2
 
 const EasingEditor = ({
 	easingType,
@@ -12,7 +18,13 @@ const EasingEditor = ({
 	steps,
 	jump,
 	onEditorChange
-}: any) => {
+}: {
+	easingType: EasingType
+	matrix: Matrix
+	steps: number
+	jump: SkipOption
+	onEditorChange: (change: EditorChange) => void
+}) => {
 	// empty -1, thumbs 0..1, steps scrubbing 2
 	const [currentIndex, setCurrentIndex] = useState<EditorInputIndex>(-1)
 	const [initX, setInitX] = useState<number>(0)
@@ -35,7 +47,7 @@ const EasingEditor = ({
 
 		let value: EditorChange
 
-		// if dragging thumb
+		// dragging bézier thumbs
 		if (currentIndex < 2) {
 			const rect: ClientRect = container.current.getBoundingClientRect()
 
@@ -58,7 +70,7 @@ const EasingEditor = ({
 				thumb: { index: currentIndex, vector: [x, y] }
 			}
 		}
-		// step scrubbing
+		// scrubbing the step polyline
 		else {
 			const deltaX = e.clientX - initX
 			const addFriction = Math.floor(deltaX * scrubSensitivity)

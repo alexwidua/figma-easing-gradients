@@ -13,13 +13,25 @@ import {
 	showUI,
 	cloneObject,
 	insertAfterNode,
-	collapseLayer,
-	EventHandler
+	collapseLayer
 } from '@create-figma-plugin/utilities'
 
+import {
+	DEFAULT_PRESETS,
+	DEFAULT_EASING_TYPE,
+	DEFAULT_MATRIX,
+	DEFAULT_STEPS,
+	DEFAULT_SKIP
+} from './shared/default_values'
+
+import { PresetOptionValue } from './ui'
+
+type UISettings = { width: number; height: number }
 type StorageKey = `easing-gradients-${string | number}`
 
 export type EasingType = 'CURVE' | 'STEPS'
+export type Matrix = number[][]
+export type SkipOption = 'skip-none' | 'skip-both' | 'start' | 'end'
 export type EasingOptions = {
 	type: EasingType
 	matrix: Matrix
@@ -28,40 +40,6 @@ export type EasingOptions = {
 }
 
 const STORAGE_KEY_PRESETS: StorageKey = 'easing-gradients-dev-210818'
-const DEFAULT_PRESETS: Array<PresetOptionValue> = [
-	{
-		children: 'Ease-in-out',
-		value: 'DEFAULT_EASE_IN_OUT',
-		matrix: [
-			[0.42, 0.0],
-			[0.58, 1.0]
-		]
-	},
-	{
-		children: 'Ease-in',
-		value: 'DEFAULT_EASE_IN',
-		matrix: [
-			[0.42, 0.0],
-			[1.0, 1.0]
-		]
-	},
-	{
-		children: 'Ease-out',
-		value: 'DEFAULT_EASE_OUT',
-		matrix: [
-			[0.0, 0.0],
-			[0.58, 1.0]
-		]
-	},
-	{
-		children: 'Ease',
-		value: 'DEFAULT_EASE',
-		matrix: [
-			[0.25, 0.1],
-			[0.25, 1.0]
-		]
-	}
-]
 const PREVIEW_ELEMENT_PREFIX = '[Preview]'
 
 export default async function () {
@@ -74,13 +52,10 @@ export default async function () {
 	let cloneRef: SceneNode | undefined
 	let labelRef: GroupNode | undefined
 	let state: EasingOptions = {
-		type: 'CURVE',
-		matrix: [
-			[0.65, 0.0],
-			[0.35, 1.0]
-		],
-		steps: 8,
-		skip: 'skip-none'
+		type: DEFAULT_EASING_TYPE,
+		matrix: DEFAULT_MATRIX,
+		steps: DEFAULT_STEPS,
+		skip: DEFAULT_SKIP
 	}
 
 	/**
@@ -125,13 +100,13 @@ export default async function () {
 		const height = baseHeight / zoom
 		const fontSize = Math.max(8 / zoom, 1)
 
+		// label backdrop
 		const rect: RectangleNode = figma.createRectangle()
 		rect.resizeWithoutConstraints(width, height)
-
 		const rectColor = { r: 0.094, g: 0.627, b: 0.984 } // #18A0FB aka. Figma blue
 		rect.fills = [{ type: 'SOLID', color: rectColor }]
 		rect.cornerRadius = height / 8
-
+		// label text
 		const text: TextNode = figma.createText()
 		text.resizeWithoutConstraints(width, height)
 		const textColor = { r: 1, g: 1, b: 1 } //#fff
@@ -142,7 +117,7 @@ export default async function () {
 		text.characters = 'Preview'
 
 		elements.push(rect, text)
-
+		// label container
 		const group: GroupNode = figma.group(elements, figma.currentPage)
 		group.name = `${PREVIEW_ELEMENT_PREFIX} Label`
 		const margin = 2 / zoom

@@ -1,8 +1,16 @@
 import { h } from 'preact'
-
 import easingCoordinates from 'easing-coordinates'
+import { SkipOption } from '../main'
 
-const StepIcon = ({ size = 12, steps = 6, jump = 'skip-none' }: any) => {
+const StepIcon = ({
+	size = 12,
+	steps = 6,
+	jump = 'skip-none'
+}: {
+	size: number
+	steps: number
+	jump: SkipOption
+}) => {
 	const getPolyPoints = (): string => {
 		const coords = easingCoordinates(`steps(${steps}, ${jump})`)
 		return coords.map((pos) => `${pos.x},${1 - pos.y}`).join(' ')

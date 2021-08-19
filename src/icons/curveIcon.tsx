@@ -1,6 +1,7 @@
 import { h } from 'preact'
+import { Matrix } from '../main'
 
-const CurveIcon = ({ size = 12, matrix }: any) => {
+const CurveIcon = ({ size = 12, matrix }: { size: number; matrix: Matrix }) => {
 	const viewbox = {
 		overflow: 'visible',
 		height: size,

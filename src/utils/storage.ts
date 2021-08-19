@@ -1,8 +1,10 @@
 /**
+ * @file Utility functions for async figma.clientStorage read and write operations.
+ */
+
+/**
  * Tries to read value from figma.clientStorage, initializes and sets store
  * if no value has been set.
- * @param key
- * @param initValue
  * @returns
  */
 export async function getValueFromStoreOrInit(key: string, initValue: any) {
@@ -22,8 +24,6 @@ export async function getValueFromStoreOrInit(key: string, initValue: any) {
 
 /**
  * Writes value to figma.clientStorage.
- * @param key
- * @param value
  * @returns supplied value if successful, returns undefined if failed
  */
 export async function setValueToStorage(key: string, value: any) {

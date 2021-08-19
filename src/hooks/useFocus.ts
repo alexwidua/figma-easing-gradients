@@ -1,3 +1,10 @@
+/**
+ * @file Focuses elements of the ui library which input elements
+ * cannot be referenced directly. This is a small tweak of the librarie's useInitialFocus hook.
+ * @author yuanqing
+ * @url https://github.com/yuanqing/create-figma-plugin/blob/main/packages/ui/src/hooks/use-initial-focus/use-initial-focus.ts
+ */
+
 import { useEffect } from 'preact/hooks'
 
 const FOCUS_DATA_ATTRIBUTE_NAME = 'data-focus'

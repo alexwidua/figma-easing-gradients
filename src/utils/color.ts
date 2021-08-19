@@ -1,3 +1,6 @@
+/**
+ * @file Chroma utilitiy functions.
+ */
 import chroma, { Color } from 'chroma-js'
 
 /**

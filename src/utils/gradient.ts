@@ -1,3 +1,8 @@
+/**
+ * @file This file contains interpolateColorStops(), which is the 'main
+ * logic behind easing gradient fills.
+ */
+
 import easingCoordinates from 'easing-coordinates'
 import chroma from 'chroma-js'
 import { gl } from './color'
@@ -20,7 +25,7 @@ export function isGradientFillWithMultipleStops(
 export function interpolateColorStops(
 	fill: GradientPaint,
 	options: EasingOptions
-): Array<ColorStop> {
+): ColorStop[] {
 	const { type, matrix, steps, skip } = options
 
 	const stops = [

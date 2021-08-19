@@ -5,11 +5,11 @@ import {
 	interpolateColorStops
 } from './gradient'
 import { nodeIsGeometryMixin, nodeHasGradientFill } from './node'
-import { showDecimals, clampNumber } from './number'
-import { validateSelection } from './selection'
+import { showDecimals } from './number'
+import { validateSelection, SelectionKey, SelectionKeyMap } from './selection'
 import { getValueFromStoreOrInit, setValueToStorage } from './storage'
-import { getRandomString, getCurveSynonym } from './string'
-import { handleNotificationFromUI } from './notification'
+import { getRandomString, describeCurveInAdjectives } from './string'
+import { handleNotificationFromUI, NotificationKey } from './notification'
 
 export {
 	gl,
@@ -19,11 +19,12 @@ export {
 	nodeIsGeometryMixin,
 	nodeHasGradientFill,
 	showDecimals,
-	clampNumber,
 	validateSelection,
 	getValueFromStoreOrInit,
 	setValueToStorage,
 	getRandomString,
-	getCurveSynonym,
+	describeCurveInAdjectives,
 	handleNotificationFromUI
 }
+
+export type { SelectionKey, SelectionKeyMap, NotificationKey }

@@ -7,8 +7,8 @@ import {
 } from '@create-figma-plugin/ui'
 import style from './style.css'
 
-const INPUT_HEAD_COPY = `Enter a name`
-const INPUT_BUTTON_COPY = `Add`
+const COPY_INPUT_H1 = `Enter a name`
+const COPY_ADD_BUTTON = `Add`
 
 const PresetInput = ({
 	showInputDialog,
@@ -16,13 +16,21 @@ const PresetInput = ({
 	placeholder,
 	onInput,
 	onApply
-}: any) => {
+}: {
+	showInputDialog: boolean
+	value: string
+	placeholder: string
+	onInput:
+		| ((event: h.JSX.TargetedEvent<HTMLInputElement, Event>) => void)
+		| undefined
+	onApply: h.JSX.MouseEventHandler<HTMLButtonElement> | undefined
+}) => {
 	return (
 		<div
 			class={`${style.presetInput} ${
 				!showInputDialog && style.isHidden
 			}`}>
-			<div class={style.header}>{INPUT_HEAD_COPY}</div>
+			<div class={style.header}>{COPY_INPUT_H1}</div>
 			<VerticalSpace space="extraSmall" />
 			<Textbox
 				value={value}
@@ -32,7 +40,7 @@ const PresetInput = ({
 			<VerticalSpace space="small" />
 			<Columns>
 				<Button fullWidth onClick={onApply}>
-					{INPUT_BUTTON_COPY}
+					{COPY_ADD_BUTTON}
 				</Button>
 			</Columns>
 		</div>

@@ -1,8 +1,18 @@
+/**
+ * @file String utility functions.
+ */
+
+import { Matrix } from '../main'
+
 export function getRandomString(): string {
 	return (Math.random() + 1).toString(36).substring(7)
 }
 
-export function getCurveSynonym(matrix: Matrix): string {
+/**
+ * @returns a very inaccurate and random description of a given matrix.
+ * Used as placeholder for new presets in place of generic 'Custom 1' names
+ */
+export function describeCurveInAdjectives(matrix: Matrix): string {
 	const { x1, y1, x2, y2 } = {
 		x1: matrix[0][0],
 		y1: matrix[0][1],
@@ -12,22 +22,32 @@ export function getCurveSynonym(matrix: Matrix): string {
 
 	if (x1 == 0 && y1 == 0 && x2 == 1 && y2 == 1) {
 		return `${getRandStrFromArr(LINEAR)} `
-	} else if (Math.abs(x1 - y1) < 0.5 && Math.abs(x2 - y2) < 0.5) {
+	}
+	// if smooth with litte deviation
+	else if (Math.abs(x1 - y1) < 0.5 && Math.abs(x2 - y2) < 0.5) {
 		return `${getRandStrFromArr(GENTLE)} ${getRandStrFromArr(CURVE)}`
-	} else if (x1 >= y1 && x2 >= y2) {
+	}
+	// if inverse shaped
+	else if (x1 >= y1 && x2 >= y2) {
 		return `${getRandStrFromArr(CONCAVE)} ${getRandStrFromArr(CURVE)}`
-	} else if (x1 <= y1 && x2 <= y2) {
+	}
+	// if convex shaped
+	else if (x1 <= y1 && x2 <= y2) {
 		return `${getRandStrFromArr(CONVEX)} ${getRandStrFromArr(CURVE)}`
-	} else if (x1 < y1 && x2 > y2) {
+	}
+	// TODO: better wording than plane
+	else if (x1 < y1 && x2 > y2) {
 		return `${getRandStrFromArr(PLANAR)} ${getRandStrFromArr(CURVE)}`
-	} else if (x1 > y1 && x2 < y2) {
+	}
+	// if steep incline
+	else if (x1 > y1 && x2 < y2) {
 		return `${getRandStrFromArr(STEEP)} ${getRandStrFromArr(CURVE)}`
 	} else {
-		return `eased ${getRandStrFromArr(CURVE)}`
+		return `Eased ${getRandStrFromArr(CURVE)}`
 	}
 }
 
-function getRandStrFromArr(arr: Array<string>): string {
+function getRandStrFromArr(arr: string[]): string {
 	return arr[Math.floor(Math.random() * arr.length)]
 }
 

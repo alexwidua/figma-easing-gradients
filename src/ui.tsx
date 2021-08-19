@@ -1,4 +1,4 @@
-import { h, JSX } from 'preact'
+import { h, JSX, ComponentChildren } from 'preact'
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import { on, emit } from '@create-figma-plugin/utilities'
 import './base.css'
@@ -19,10 +19,9 @@ import {
 	debounce,
 	showDecimals,
 	getRandomString,
-	getCurveSynonym
+	describeCurveInAdjectives
 } from './utils'
 import { Editor, PresetMenu, PresetInput } from './components'
-
 import {
 	TextboxMatrixIcon,
 	TextboxStepIcon,
@@ -33,78 +32,118 @@ import {
 	CurveIcon,
 	StepIcon
 } from './icons'
+import {
+	DEFAULT_EASING_TYPE,
+	DEFAULT_MATRIX,
+	DEFAULT_STEPS,
+	DEFAULT_SKIP
+} from './shared/default_values'
 
-// types
+/**
+ * Types
+ */
 import { DropdownOption } from '@create-figma-plugin/ui'
-import { NotificationKey } from './utils/notification'
-import { EasingType } from './main'
+import { SelectionKey, SelectionKeyMap, NotificationKey } from './utils/'
+import { EasingOptions, EasingType, Matrix, SkipOption } from './main'
 import { EditorChange } from './components/editor/editor'
 
-const PLACEHOLDER_BEFORE_INTERACTION_COPY = 'Choose preset...'
-const PLACEHOLDER_AFTER_INTERACTION_COPY = 'Custom'
+export type PresetOption =
+	| PresetOptionHeader
+	| PresetOptionValue
+	| PresetOptionSeparator
+export type PresetOptionHeader = {
+	header: string
+}
+export type PresetOptionValue = {
+	children?: string
+	value: PresetOptionKey
+	matrix?: Matrix
+}
+export type PresetOptionSeparator = {
+	separator: boolean
+}
+export type PresetOptionKey =
+	| 'ADD_PRESET'
+	| 'MANAGE_PRESETS'
+	| 'RESET_DEFAULT'
+	| CustomPresetKey
 
-const NO_PRESETS_OPTION: Array<DropdownOption> = [{ header: 'No presets.' }]
-const EASING_TYPE_OPTIONS: Array<DropdownOption> = [
+export type CustomPresetKey = `CUSTOM_${string}` | `DEFAULT_${string}`
+export type PresetMessage = 'ADD' | 'REMOVE'
+
+/**
+ * Global constants
+ */
+const COPY_PLACEHOLDER_BEFORE_INTERACTION: string = 'Choose preset...'
+const COPY_PLACEHOLDER_AFTER_INTERACTION: string = 'Custom'
+const OPTION_NO_PRESETS: PresetOptionHeader[] = [{ header: 'No presets.' }]
+const OPTION_EASING_TYPE: DropdownOption[] = [
 	{ children: 'Curve', value: 'CURVE' },
 	{ children: 'Steps', value: 'STEPS' }
 ]
-
-const JUMP_OPTIONS: Array<DropdownOption> = [
+const OPTIONS_JUMPS: { children: string; value: SkipOption }[] = [
 	{ children: 'jump-none', value: 'skip-none' },
 	{ children: 'jump-both', value: 'skip-both' },
 	{ children: 'jump-start', value: 'start' },
 	{ children: 'jump-end', value: 'end' }
 ]
-const JUMP_ICON: any = {
+const JUMP_ICON: { [type in SkipOption]: ComponentChildren } = {
 	'skip-none': DropdownJumpNoneIcon,
 	'skip-both': DropdownJumpBothIcon,
 	start: DropdownJumpStartIcon,
 	end: DropdownJumpEndIcon
 }
-
-const HINT_MAP: SelectionStateMap = {
+const MAP_HINTS: SelectionKeyMap = {
 	EMPTY: 'No element selected.',
 	MULTIPLE_ELEMENTS: 'Do not select more than one element.',
 	INVALID_TYPE: 'Selected element type is not supported.',
-	NO_GRADIENT_FILL: 'Selected element must have at least one gradient fill.',
+	NO_GRADIENT_FILL:
+		'Selected element must have at least one gradient fill with at least two color stops.',
 	VALID: 'Applies the current easing function to the selected element.'
 }
-
-const DEFAULT_MATRIX = [
-	[0.65, 0.0],
-	[0.35, 1.0]
-]
 
 const Plugin = () => {
 	/**
 	 * States
 	 */
-	const [easingType, setEasingType] = useState<EasingType>('CURVE')
 
-	const [selectedPreset, setSelectedPreset] =
-		useState<PresetOptionKey | null>(null)
-	const [presets, setPresets] = useState<any>(NO_PRESETS_OPTION)
+	const [presets, setPresets] = useState<
+		PresetOptionValue[] | PresetOptionHeader[]
+	>(OPTION_NO_PRESETS)
 
-	// used as reference for custom preset name input
-	const [tempCustomPresetStore, setTempCustomPresetStore] =
-		useState<PresetOption | null>(null)
-	const [customPresetName, setCustomPresetName] = useState<string>('')
-	const [customPresetPlaceholder, setCustomPresetPlaceholder] =
-		useState<string>('')
+	// preset menu states
 	const [showPresetInputDialog, setShowPresetInputDialog] =
 		useState<boolean>(false)
 	const [showManagingPresetsDialog, setShowManagingPresetsDialog] =
 		useState<boolean>(false)
 	const [hasInteractedWithPresetMenu, setHasInteractedWithPresetMenu] =
 		useState<boolean>(false)
+
+	// temporary states that are passed between the different dialogs
+	const [tempCustomPresetStore, setTempCustomPresetStore] =
+		useState<PresetOption | null>(null)
+	const [tempCustomPresetName, setTempCustomPresetName] = useState<string>('')
+	const [tempCustomPresetPlaceholder, setTempCustomPresetPlaceholder] =
+		useState<string>('')
+
+	// ui exposed states
+	const [easingType, setEasingType] =
+		useState<EasingType>(DEFAULT_EASING_TYPE)
+	const [selectedPreset, setSelectedPreset] =
+		useState<PresetOptionKey | null>(null)
 	const [matrix, setMatrix] = useState<Matrix>(DEFAULT_MATRIX)
-	const [steps, setSteps] = useState<number>(8)
-	const [jump, setJump] = useState<string>('skip-none')
+	const [steps, setSteps] = useState<number>(DEFAULT_STEPS)
+	const [jump, setJump] = useState<SkipOption>(DEFAULT_SKIP)
 	const [selectionState, setSelectionState] =
-		useState<SelectionState>('INVALID_TYPE')
+		useState<SelectionKey>('INVALID_TYPE')
 
 	// data emitted to plugin
-	const messageData = { type: easingType, matrix, steps, skip: jump }
+	const messageData: EasingOptions = {
+		type: easingType,
+		matrix,
+		steps,
+		skip: jump
+	}
 
 	/**
 	 * Register event listeners
@@ -122,17 +161,12 @@ const Plugin = () => {
 	}, [])
 
 	useEffect(() => {
-		debounceNumItemsChange(messageData)
-	}, [easingType, matrix, steps, jump])
-
-	useEffect(() => {
 		if (selectedPreset) {
-			// for changing placeholder from 'choose preset...' to 'custom'
 			if (!hasInteractedWithPresetMenu)
 				setHasInteractedWithPresetMenu(true)
 
-			const matrix = [...presets].find(
-				(el) => el.value === selectedPreset
+			const matrix = ([...presets] as any).find(
+				(el: PresetOptionValue) => el.value === selectedPreset
 			).matrix
 			if (matrix) setMatrix(matrix)
 		}
@@ -174,9 +208,14 @@ const Plugin = () => {
 	}
 
 	/**
-	 * Debounce gradient updates
+	 * Debounce gradient updates that are emitted to the plugin
 	 */
 	const debounceWaitTime = 100 //ms
+
+	useEffect(() => {
+		debounceNumItemsChange(messageData)
+	}, [easingType, matrix, steps, jump])
+
 	const debounceNumItemsChange = useCallback(
 		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
 		[]
@@ -186,28 +225,16 @@ const Plugin = () => {
 	 * Handle preset menu changes and custom preset input
 	 */
 	function handlePresetMenuChange(value: PresetOptionKey) {
-		if (!showManagingPresetsDialog) {
-			if (value === 'ADD_PRESET') {
-				const customPresetName: GeneratedCustomPresetKey = `CUSTOM_${getRandomString()}`
-				const newPreset: PresetOptionValue = {
-					value: customPresetName,
-					matrix: [...matrix]
-				}
-				const placeholder = getCurveSynonym([...matrix])
-				setTempCustomPresetStore(newPreset)
-				setCustomPresetPlaceholder(placeholder)
-				setShowPresetInputDialog(true)
-			} else if (value === 'MANAGE_PRESETS') {
-				setShowManagingPresetsDialog(true)
-				setSelectedPreset(null)
-			} else {
-				setSelectedPreset(value)
+		// page 2: remove or reset presets
+		if (showManagingPresetsDialog) {
+			if (value === 'RESET_DEFAULT') {
+				emit('EMIT_PRESET_RESET_TO_PLUGIN')
 			}
-		} else {
-			if (value !== 'RESET_DEFAULT') {
-				let data: Array<PresetOption>
-				const updatedPresets = [...presets].filter(
-					(e) => e.value !== value
+			// else remove preset
+			else {
+				let data: PresetOption[]
+				const updatedPresets = ([...presets] as any).filter(
+					(el: PresetOptionValue) => el.value !== value
 				)
 				if (!updatedPresets.length) {
 					data = []
@@ -215,10 +242,31 @@ const Plugin = () => {
 					data = [...updatedPresets]
 				}
 				emitPresetUpdateToPlugin(data, 'REMOVE')
-			} else {
-				emit('EMIT_PRESET_RESET_TO_PLUGIN')
 			}
 			setShowManagingPresetsDialog(false)
+		}
+		// page 1: select or add preset
+		else {
+			if (value === 'ADD_PRESET') {
+				const tempCustomPresetName: CustomPresetKey = `CUSTOM_${getRandomString()}`
+				const newPreset: PresetOptionValue = {
+					value: tempCustomPresetName,
+					matrix: [...matrix]
+				}
+				const placeholder = describeCurveInAdjectives([...matrix])
+				setTempCustomPresetStore(newPreset)
+				setTempCustomPresetPlaceholder(placeholder)
+				setShowPresetInputDialog(true)
+			}
+			// switch to page 2
+			else if (value === 'MANAGE_PRESETS') {
+				setShowManagingPresetsDialog(true)
+				setSelectedPreset(null)
+			}
+			// select existing preset
+			else {
+				setSelectedPreset(value)
+			}
 		}
 	}
 
@@ -226,20 +274,20 @@ const Plugin = () => {
 		e: JSX.TargetedEvent<HTMLInputElement>
 	): void {
 		const value = e.currentTarget.value
-		setCustomPresetName(value)
+		setTempCustomPresetName(value)
 	}
 
 	function handleCustomPresetDialogApply(): void {
-		if (customPresetName.length > 24) {
-			const errorKey: ErrorKey = 'PRESET_INPUT_TOO_MANY_CHARS'
-			emitNotificationToPlugin(errorKey)
+		if (tempCustomPresetName.length > 24) {
+			const key: NotificationKey = 'PRESET_INPUT_TOO_MANY_CHARS'
+			emitNotificationToPlugin(key)
 			return
 		}
 
-		let data
-		const presetName = customPresetName || customPresetPlaceholder
+		let data: any
+		const presetName = tempCustomPresetName || tempCustomPresetPlaceholder
 		const newPreset = { children: presetName, ...tempCustomPresetStore }
-		if ([...presets].some((el) => el.header)) {
+		if (([...presets] as any).some((el: PresetOptionHeader) => el.header)) {
 			data = [newPreset]
 		} else {
 			data = [...presets, newPreset]
@@ -251,14 +299,14 @@ const Plugin = () => {
 	function resetCustomPresetDialog(): void {
 		setShowPresetInputDialog(false)
 		setTempCustomPresetStore(null)
-		setCustomPresetName('')
+		setTempCustomPresetName('')
 	}
 
 	/**
 	 *  Handle emits to plugin and response from plugin
 	 */
 	function emitPresetUpdateToPlugin(
-		presets: Array<PresetOption>,
+		presets: PresetOption[],
 		message: PresetMessage
 	): void {
 		emit('EMIT_PRESETS_TO_PLUGIN', { presets, message })
@@ -268,12 +316,14 @@ const Plugin = () => {
 		emit('EMIT_NOTIFICATION_TO_PLUGIN', key)
 	}
 
-	// TODO: Type.
-	function handleResponseFromPlugin(data: any): void {
+	function handleResponseFromPlugin(data: {
+		response: PresetOptionValue[]
+		message: PresetOptionKey
+	}): void {
 		const { response, message } = data
 		if (response) {
 			if (!response.length) {
-				setPresets(NO_PRESETS_OPTION)
+				setPresets(OPTION_NO_PRESETS)
 			} else {
 				setPresets([...response])
 				if (message === 'ADD') {
@@ -283,7 +333,9 @@ const Plugin = () => {
 		}
 	}
 
-	// Dialogs are cancelled by clicking outside of element
+	/**
+	 * Cancel dialogs by clicking outside the dropdown field
+	 */
 	const ref = useRef<HTMLDivElement>(null)
 	useMouseDownOutside({
 		onMouseDownOutside: () => handleMouseDownOutside(),
@@ -313,27 +365,32 @@ const Plugin = () => {
 						setEasingType(e.currentTarget.value as EasingType)
 					}
 					icon={
-						easingType === 'CURVE' ? (
+						(easingType as EasingType) === 'CURVE' ? (
 							<CurveIcon size={12} matrix={matrix} />
 						) : (
 							<StepIcon size={12} steps={steps} jump={jump} />
 						)
 					}
-					options={EASING_TYPE_OPTIONS}
+					options={OPTION_EASING_TYPE}
 				/>
 				<div
 					ref={ref}
 					style={{
 						position: 'relative',
 						visibility:
-							easingType === 'CURVE' ? 'visible' : 'hidden',
-						pointerEvents: easingType === 'CURVE' ? 'all' : 'none'
+							(easingType as EasingType) === 'CURVE'
+								? 'visible'
+								: 'hidden',
+						pointerEvents:
+							(easingType as EasingType) === 'CURVE'
+								? 'all'
+								: 'none'
 					}}
 					onKeyDown={handlePresetMenuKeyDown}>
 					<PresetInput
 						showInputDialog={showPresetInputDialog}
-						value={customPresetName}
-						placeholder={customPresetPlaceholder}
+						value={tempCustomPresetName}
+						placeholder={tempCustomPresetPlaceholder}
 						onInput={handleCustomPresetInput}
 						onApply={handleCustomPresetDialogApply}
 					/>
@@ -341,8 +398,8 @@ const Plugin = () => {
 						value={selectedPreset}
 						placeholder={
 							!hasInteractedWithPresetMenu
-								? PLACEHOLDER_BEFORE_INTERACTION_COPY
-								: PLACEHOLDER_AFTER_INTERACTION_COPY
+								? COPY_PLACEHOLDER_BEFORE_INTERACTION
+								: COPY_PLACEHOLDER_AFTER_INTERACTION
 						}
 						presets={presets}
 						showManagingPresetsDialog={showManagingPresetsDialog}
@@ -359,7 +416,7 @@ const Plugin = () => {
 				onEditorChange={handleEditorChange}
 			/>
 			<VerticalSpace space="extraSmall" />
-			{easingType === 'CURVE' ? (
+			{(easingType as EasingType) === 'CURVE' ? (
 				<Textbox
 					value={[...matrix[0], ...matrix[1]]
 						.map((vec) => showDecimals(vec, 2))
@@ -377,8 +434,10 @@ const Plugin = () => {
 					<Dropdown
 						value={jump}
 						icon={JUMP_ICON[jump]}
-						onChange={(e) => setJump(e.currentTarget.value)}
-						options={JUMP_OPTIONS}
+						onChange={(e) =>
+							setJump(e.currentTarget.value as SkipOption)
+						}
+						options={OPTIONS_JUMPS}
 					/>
 				</Columns>
 			)}
@@ -386,14 +445,14 @@ const Plugin = () => {
 			<Button
 				fullWidth
 				onClick={() => emit('APPLY_EASING_FUNCTION')}
-				disabled={selectionState !== 'VALID'}>
+				disabled={(selectionState as SelectionKey) !== 'VALID'}>
 				Apply
 			</Button>
 			<VerticalSpace space="extraSmall" />
 			<div style={{ height: 36 }}>
 				<MiddleAlign>
 					<Text style={{ textAlign: 'center' }} muted>
-						{HINT_MAP[selectionState]}
+						{MAP_HINTS[selectionState]}
 					</Text>
 				</MiddleAlign>
 			</div>
