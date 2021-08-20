@@ -13,7 +13,7 @@ const StepIcon = ({
 }) => {
 	const getPolyPoints = (): string => {
 		const coords = easingCoordinates(`steps(${steps}, ${jump})`)
-		return coords.map((pos) => `${pos.x},${1 - pos.y}`).join(' ')
+		return coords.map(pos => `${pos.x},${1 - pos.y}`).join(' ')
 	}
 
 	// display dashed line as visual guide for jump/skip values

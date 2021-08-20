@@ -27,9 +27,8 @@ const PresetInput = ({
 }) => {
 	return (
 		<div
-			class={`${style.presetInput} ${
-				!showInputDialog && style.isHidden
-			}`}>
+			class={`${style.presetInput} ${!showInputDialog && style.isHidden}`}
+		>
 			<div class={style.header}>{COPY_INPUT_H1}</div>
 			<VerticalSpace space="extraSmall" />
 			<Textbox

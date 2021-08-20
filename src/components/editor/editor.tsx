@@ -93,7 +93,8 @@ const EasingEditor = ({
 			class={style.wrapper}
 			onMouseMove={handleMouseMove}
 			onMouseUp={cancelDragEvent}
-			onMouseLeave={cancelDragEvent}>
+			onMouseLeave={cancelDragEvent}
+		>
 			<div class={style.container} ref={container}>
 				{easingType === 'CURVE' && (
 					<div>

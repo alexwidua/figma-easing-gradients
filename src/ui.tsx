@@ -149,12 +149,12 @@ const Plugin = () => {
 	 * Register event listeners
 	 */
 	useEffect(() => {
-		on('INITIALLY_EMIT_PRESETS_TO_UI', (storedPresets) => {
+		on('INITIALLY_EMIT_PRESETS_TO_UI', storedPresets => {
 			if (storedPresets.length) {
 				setPresets([...storedPresets])
 			}
 		})
-		on('UPDATE_SELECTION_STATE', (selectionState) => {
+		on('UPDATE_SELECTION_STATE', selectionState => {
 			setSelectionState(selectionState)
 		})
 		on('RESPOND_TO_PRESETS_UPDATE', handleResponseFromPlugin)
@@ -177,7 +177,7 @@ const Plugin = () => {
 	 */
 	function handleMatrixInput(e: JSX.TargetedEvent<HTMLInputElement>): void {
 		const value = e.currentTarget.value.split(', ').map(Number)
-		const isValidValue = value.every((e) => e >= 0 && e <= 1)
+		const isValidValue = value.every(e => e >= 0 && e <= 1)
 
 		if (value.length === 4 && isValidValue) {
 			setMatrix([
@@ -206,20 +206,6 @@ const Plugin = () => {
 			setSteps(value.steps)
 		}
 	}
-
-	/**
-	 * Debounce gradient updates that are emitted to the plugin
-	 */
-	const debounceWaitTime = 100 //ms
-
-	useEffect(() => {
-		debounceNumItemsChange(messageData)
-	}, [easingType, matrix, steps, jump])
-
-	const debounceNumItemsChange = useCallback(
-		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
-		[]
-	)
 
 	/**
 	 * Handle preset menu changes and custom preset input
@@ -355,13 +341,27 @@ const Plugin = () => {
 		}
 	}
 
+	/**
+	 * Debounce gradient updates that are emitted to the plugin
+	 */
+	const debounceWaitTime = 100 //ms
+
+	useEffect(() => {
+		debounceNumItemsChange(messageData)
+	}, [easingType, matrix, steps, jump])
+
+	const debounceNumItemsChange = useCallback(
+		debounce(data => emit('UPDATE_FROM_UI', data), debounceWaitTime),
+		[]
+	)
+
 	return (
 		<Container>
 			<VerticalSpace space="extraSmall" />
 			<Columns space="extraSmall">
 				<Dropdown
 					value={easingType}
-					onChange={(e) =>
+					onChange={e =>
 						setEasingType(e.currentTarget.value as EasingType)
 					}
 					icon={
@@ -386,7 +386,8 @@ const Plugin = () => {
 								? 'all'
 								: 'none'
 					}}
-					onKeyDown={handlePresetMenuKeyDown}>
+					onKeyDown={handlePresetMenuKeyDown}
+				>
 					<PresetInput
 						showInputDialog={showPresetInputDialog}
 						value={tempCustomPresetName}
@@ -419,7 +420,7 @@ const Plugin = () => {
 			{(easingType as EasingType) === 'CURVE' ? (
 				<Textbox
 					value={[...matrix[0], ...matrix[1]]
-						.map((vec) => showDecimals(vec, 2))
+						.map(vec => showDecimals(vec, 2))
 						.join(', ')}
 					icon={TextboxMatrixIcon}
 					onBlurCapture={handleMatrixInput}
@@ -434,7 +435,7 @@ const Plugin = () => {
 					<Dropdown
 						value={jump}
 						icon={JUMP_ICON[jump]}
-						onChange={(e) =>
+						onChange={e =>
 							setJump(e.currentTarget.value as SkipOption)
 						}
 						options={OPTIONS_JUMPS}
@@ -445,7 +446,8 @@ const Plugin = () => {
 			<Button
 				fullWidth
 				onClick={() => emit('APPLY_EASING_FUNCTION')}
-				disabled={(selectionState as SelectionKey) !== 'VALID'}>
+				disabled={(selectionState as SelectionKey) !== 'VALID'}
+			>
 				Apply
 			</Button>
 			<VerticalSpace space="extraSmall" />

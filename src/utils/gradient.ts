@@ -50,7 +50,7 @@ export function interpolateColorStops(
 			  )
 			: easingCoordinates(`steps(${steps}, ${skip})`)
 
-	return coordinates.map((position) => {
+	return coordinates.map(position => {
 		const [r, g, b, a] = chroma
 			.mix(stopColor[0], stopColor[1], position.y, 'rgb')
 			.gl()

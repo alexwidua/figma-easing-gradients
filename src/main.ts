@@ -215,6 +215,9 @@ export default async function () {
 		setValueToStorage(STORAGE_KEY_PRESETS, presets)
 			.then((response: PresetOptionValue) => {
 				emit('RESPOND_TO_PRESETS_UPDATE', { response, message })
+				figma.notify(
+					message === 'ADD' ? 'Added new preset.' : 'Removed preset.'
+				)
 			})
 			.catch(() => {
 				figma.notify(`Couldn't save preset, please try again.`)
@@ -228,6 +231,9 @@ export default async function () {
 					response,
 					message: 'RESET'
 				})
+				figma.notify(
+					'Removed all presets and restored default presets.'
+				)
 			})
 			.catch(() => {
 				figma.notify(`Couldn't reset preset, please try again.`)

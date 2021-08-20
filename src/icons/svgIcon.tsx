@@ -6,7 +6,8 @@ export const TextboxMatrixIcon = (
 		height="8"
 		viewBox="0 0 8 8"
 		fill="none"
-		xmlns="http://www.w3.org/2000/svg">
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<circle cx="6.5" cy="1.5" r="1.5" fill="currentColor" />
 		<circle cx="1.5" cy="1.5" r="1.5" fill="currentColor" />
 		<circle cx="1.5" cy="6.5" r="1.5" fill="currentColor" />
@@ -20,7 +21,8 @@ export const TextboxStepIcon = (
 		height="9"
 		viewBox="0 0 9 9"
 		fill="none"
-		xmlns="http://www.w3.org/2000/svg">
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<path
 			fill-rule="evenodd"
 			clip-rule="evenodd"
@@ -36,7 +38,8 @@ export const DropdownJumpNoneIcon = (
 		height="5"
 		viewBox="0 0 10 5"
 		fill="none"
-		xmlns="http://www.w3.org/2000/svg">
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<path
 			fill-rule="evenodd"
 			clip-rule="evenodd"
@@ -58,7 +61,8 @@ export const DropdownJumpBothIcon = (
 		height="6"
 		viewBox="0 0 10 6"
 		fill="none"
-		xmlns="http://www.w3.org/2000/svg">
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<path
 			d="M4.28571 3C4.28571 4.18347 3.32632 5.14286 2.14286 5.14286C0.95939 5.14286 0 4.18347 0 3C0 1.81654 0.95939 0.857147 2.14286 0.857147C3.32632 0.857147 4.28571 1.81654 4.28571 3Z"
 			fill="currentColor"
@@ -76,7 +80,8 @@ export const DropdownJumpStartIcon = (
 		height="5"
 		viewBox="0 0 10 5"
 		fill="none"
-		xmlns="http://www.w3.org/2000/svg">
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<path
 			fill-rule="evenodd"
 			clip-rule="evenodd"
@@ -96,7 +101,8 @@ export const DropdownJumpEndIcon = (
 		height="5"
 		viewBox="0 0 10 5"
 		fill="none"
-		xmlns="http://www.w3.org/2000/svg">
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<path
 			d="M4.28571 2.71428C4.28571 3.89775 3.32632 4.85714 2.14286 4.85714C0.95939 4.85714 0 3.89775 0 2.71428C0 1.53082 0.95939 0.571426 2.14286 0.571426C3.32632 0.571426 4.28571 1.53082 4.28571 2.71428Z"
 			fill="currentColor"

@@ -69,7 +69,7 @@ const Steps = ({
 }) => {
 	const getPolyPoints = (): string => {
 		const coords = easingCoordinates(`steps(${steps}, ${jump})`)
-		return coords.map((pos) => `${pos.x},${1 - pos.y}`).join(' ')
+		return coords.map(pos => `${pos.x},${1 - pos.y}`).join(' ')
 	}
 
 	// display dashed line as visual guide for jump/skip values
@@ -88,7 +88,8 @@ const Steps = ({
 			style={{ cursor: 'ew-resize' }}
 			viewBox="0 0 1 1"
 			fill="none"
-			onMouseDown={onMouseDown}>
+			onMouseDown={onMouseDown}
+		>
 			{/* stepped polyline */}
 			<g>
 				<polyline
