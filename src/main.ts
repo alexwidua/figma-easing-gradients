@@ -39,7 +39,7 @@ export type EasingOptions = {
 	skip: string
 }
 
-const STORAGE_KEY_PRESETS: StorageKey = 'easing-gradients-dev-210818'
+const STORAGE_KEY_PRESETS: StorageKey = 'easing-gradients-v2-presets'
 const PREVIEW_ELEMENT_PREFIX = '[Preview]'
 
 export default async function () {
