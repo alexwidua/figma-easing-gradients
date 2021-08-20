@@ -37,8 +37,8 @@
 		"watch": "build-figma-plugin --typecheck --watch"
 	},
 	"figma-plugin": {
-		"id": "dddd",
-		"name": "Easing Gradients Refactor",
+		"id": "907899097995668330",
+		"name": "Easing Gradients",
 		"main": "src/main.ts",
 		"ui": "src/ui.tsx"
 	}

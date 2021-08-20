@@ -1,6 +1,6 @@
 {
-  "name": "Easing Gradients Refactor",
-  "id": "dddd",
+  "name": "Easing Gradients",
+  "id": "907899097995668330",
   "api": "1.0.0",
   "main": "build/main.js",
   "ui": "build/ui.js"
