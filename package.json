@@ -1,9 +1,9 @@
 {
-	"name": "figma-copy-and-rotate",
-	"version": "1.0.0",
-	"description": "Create rotated copies of Figma nodes.",
+	"name": "figma-easing-gradients",
+	"version": "2.0.0",
+	"description": "Easing functions for gradient fills in Figma.",
 	"keywords": [
-		"figma-copy-and-rotate",
+		"figma-easing-gradients",
 		"figma",
 		"figma-plugin",
 		"figma-plugins"
@@ -19,7 +19,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/alexwidua/figma-copy-and-rotate"
+		"url": "git://github.com/alexwidua/figma-easing-gradients/"
 	},
 	"engines": {
 		"node": ">=14"
