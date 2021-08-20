@@ -2,9 +2,9 @@
 
 Allows easing of gradient fills in Figma using custom cubic-bézier or step easing functions.
 
-[<img src="misc/button.svg">](https://www.figma.com/community/plugin/907899097995668330/Easing-Gradients)
+[<img src="media/button.svg">](https://www.figma.com/community/plugin/907899097995668330/Easing-Gradients)
 
-## Refactor
+## ♻️ Refactor
 
 This is a refactor of the original version of the plugin. Besides a frontend change from Vue to Preact, the plugin has other user-facing changes and QoL updates in its version 2.0.0:
 
@@ -14,7 +14,7 @@ This is a refactor of the original version of the plugin. Besides a frontend cha
 
 #### Caveat with in-canvas preview
 
-The in-canvas preview works by cloning the selected node and updating the cloned node's gradients on the fly. This comes with the caveat that the cloned node will enter the document's history and possibly pollute it. Even if the user closes the plugin without applying any easing function, CMD+Z'ing will restore the cloned node. However, when testing this feature it turned out that the benefit of a in-canvas easing preview outweighs the nuisance of this caveat.
+The in-canvas preview works by cloning the selected node and updating the cloned node's gradients on the fly. This comes with the caveat that the cloned node will enter the document's history and possibly pollute it. Even if the user closes the plugin without applying any easing function, CMD+Z'ing will restore the cloned node. However, when testing this feature it turned out that the benefit of a in-canvas easing preview outweighs the nuisance of this caveat. I'd like to hear more opinions on this.
 
 ## ✨ Usage
 
@@ -32,9 +32,9 @@ The plugin is 'gradient-agnostic' in that sense that it doesn't care about the t
 
 ## 💭 Motivation
 
-[Matan Kushner's](https://github.com/matchai) [existing Figma plugin](https://www.figma.com/community/plugin/781591244449826498) does a great job but lacks an user interface and customizable easing functions. I took this as an opportunity to extend the plugin with a set of features.
+[@Matan Kushner's](https://github.com/matchai) [existing Figma plugin](https://www.figma.com/community/plugin/781591244449826498) does a great job but lacks an user interface and customizable easing functions. I took this as an opportunity to extend the plugin with a set of features.
 
-I'm grateful for [Andreas Larsen](https://github.com/larsenwork) for putting out his work on [easing gradients](https://larsenwork.com/easing-gradients/) and [Matan Kushner](https://github.com/matchai) for creating the [easing-gradient plugin](https://github.com/matchai/figma-easing-gradient) — his project was a great guidance how to initially tackle this project.
+I'm grateful for [@Andreas Larsen](https://github.com/larsenwork) for putting out his work on [easing gradients](https://larsenwork.com/easing-gradients/) and [@Matan Kushner](https://github.com/matchai) for creating the [easing-gradient plugin](https://github.com/matchai/figma-easing-gradient) — his project was a great guidance how to initially tackle this project.
 
 ## 🌀 Misc
 
