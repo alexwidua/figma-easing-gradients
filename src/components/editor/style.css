@@ -2,9 +2,9 @@
 
 .wrapper {
 	display: flex;
+	width: 100%;
 	align-items: center;
 	justify-content: center;
-	width: 100%;
 	padding: 36px;
 	border: 1px solid var(--color-black-6-translucent);
 	border-radius: var(--border-radius-6);
@@ -32,11 +32,11 @@
 	position: absolute;
 	width: 14px;
 	height: 14px;
-	background: var(--color-black);
 	border: 2px solid var(--color-white);
+	background: var(--color-black);
 	border-radius: 100%;
-	transform: translate(-50%, -50%);
 	opacity: 0;
+	transform: translate(-50%, -50%);
 	transition: opacity 0.2s;
 }
 
@@ -45,8 +45,8 @@
 }
 
 .thumb.zeroed {
-	background: var(--color-white);
 	border: 1px solid var(--color-black);
+	background: var(--color-white);
 }
 
 /* Views */
@@ -57,15 +57,15 @@
 
 .path {
 	fill: none;
-	stroke-width: 2px;
-	stroke-linecap: round;
 	stroke: var(--color-blue);
+	stroke-linecap: round;
+	stroke-width: 2px;
 }
 
 .path.connector {
 	opacity: 0;
-	transition: opacity 0.2s;
 	stroke: var(--color-black);
+	transition: opacity 0.2s;
 }
 
 .dashed {

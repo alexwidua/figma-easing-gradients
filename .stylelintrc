@@ -1,5 +1,0 @@
-{
-  "extends": [
-    "@zilahir/stylelint-config-rational-order"
-  ]
-}

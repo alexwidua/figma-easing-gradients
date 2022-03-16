@@ -1,16 +1,16 @@
 .presetInput {
 	position: absolute;
+	z-index: 20;
 	top: 0;
 	right: 4px;
-	z-index: 20;
 	min-width: 168px;
 	padding: 16px;
 	background-color: var(--color-hud);
 }
 
 .presetInput.isHidden {
-	visibility: hidden;
 	pointer-events: none;
+	visibility: hidden;
 }
 
 .presetInput input {
