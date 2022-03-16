@@ -42,7 +42,7 @@ const KEY_PRESETS: StorageKey = 'easing-gradients-v2-presets'
 const PREVIEW_ELEMENT_PREFIX = '[Preview]'
 
 export default async function () {
-	const ui: UISettings = { width: 280, height: 432 }
+	const ui: UISettings = { width: 280, height: 388 }
 	await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' })
 
 	let selectionRef: SceneNode | undefined

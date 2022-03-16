@@ -93,13 +93,12 @@ const JUMP_ICON: { [type in SkipOption]: ComponentChildren } = {
 	start: DropdownJumpStartIcon,
 	end: DropdownJumpEndIcon
 }
-const MAP_HINTS: SelectionKeyMap = {
-	EMPTY: 'No element selected.',
-	MULTIPLE_ELEMENTS: 'Do not select more than one element.',
-	INVALID_TYPE: 'Selected element type is not supported.',
-	NO_GRADIENT_FILL:
-		'Selected element must have at least one gradient fill with at least two color stops.',
-	VALID: 'Applies the current easing function to the selected element.'
+const BUTTON_STATE: SelectionKeyMap = {
+	EMPTY: 'No element selected',
+	MULTIPLE_ELEMENTS: 'Multiple elements',
+	INVALID_TYPE: 'Invalid element',
+	NO_GRADIENT_FILL: 'No gradient fill',
+	VALID: 'Apply'
 }
 
 const Plugin = () => {
@@ -458,16 +457,8 @@ const Plugin = () => {
 				onClick={() => emit('APPLY_EASING_FUNCTION')}
 				disabled={(selectionState as SelectionKey) !== 'VALID'}
 			>
-				Apply
+				{BUTTON_STATE[selectionState]}
 			</Button>
-			<VerticalSpace space="extraSmall" />
-			<div style={{ height: 36 }}>
-				<MiddleAlign>
-					<Text style={{ textAlign: 'center' }} muted>
-						{MAP_HINTS[selectionState]}
-					</Text>
-				</MiddleAlign>
-			</div>
 		</Container>
 	)
 }
