@@ -41,6 +41,9 @@
 		"name": "Easing Gradients",
 		"main": "src/main.ts",
 		"ui": "src/ui.tsx",
+		"editorType": [
+			"figma"
+		],
 		"relaunchButtons": {
 			"ReapplyEasing": {
 				"name": "Re-apply gradient easing",
