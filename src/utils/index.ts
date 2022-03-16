@@ -9,7 +9,7 @@ import { showDecimals } from './number'
 import { validateSelection, SelectionKey, SelectionKeyMap } from './selection'
 import { getValueFromStoreOrInit, setValueToStorage } from './storage'
 import { getRandomString, describeCurveInAdjectives } from './string'
-import { handleNotificationFromUI, NotificationKey } from './notification'
+import { handleNotificationFromUI } from './notification'
 
 export {
 	gl,
@@ -27,4 +27,4 @@ export {
 	handleNotificationFromUI
 }
 
-export type { SelectionKey, SelectionKeyMap, NotificationKey }
+export type { SelectionKey, SelectionKeyMap }

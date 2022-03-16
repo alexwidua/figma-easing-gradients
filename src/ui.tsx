@@ -43,7 +43,7 @@ import {
  * Types
  */
 import { DropdownOption } from '@create-figma-plugin/ui'
-import { SelectionKey, SelectionKeyMap, NotificationKey } from './utils/'
+import { SelectionKey, SelectionKeyMap } from './utils/'
 import { EasingOptions, EasingType, Matrix, SkipOption } from './main'
 import { EditorChange } from './components/editor/editor'
 
@@ -154,8 +154,17 @@ const Plugin = () => {
 				setPresets([...storedPresets])
 			}
 		})
-		on('UPDATE_SELECTION_STATE', selectionState => {
+		on('UPDATE_SELECTION_STATE', ({ selectionState, pluginData }) => {
 			setSelectionState(selectionState)
+			if (pluginData) {
+				const { type, matrix, steps, skip } = pluginData
+				if (!type || !matrix || !steps || !skip) return
+				setEasingType(type)
+				setMatrix(matrix)
+				setSteps(steps)
+				setJump(skip)
+				emitNotificationToPlugin('Restored previous easing settings.')
+			}
 		})
 		on('RESPOND_TO_PRESETS_UPDATE', handleResponseFromPlugin)
 	}, [])
@@ -265,8 +274,9 @@ const Plugin = () => {
 
 	function handleCustomPresetDialogApply(): void {
 		if (tempCustomPresetName.length > 24) {
-			const key: NotificationKey = 'PRESET_INPUT_TOO_MANY_CHARS'
-			emitNotificationToPlugin(key)
+			emitNotificationToPlugin(
+				'Enter a name with less than 24 characters.'
+			)
 			return
 		}
 
@@ -298,13 +308,13 @@ const Plugin = () => {
 		emit('EMIT_PRESETS_TO_PLUGIN', { presets, message })
 	}
 
-	function emitNotificationToPlugin(key: NotificationKey): void {
-		emit('EMIT_NOTIFICATION_TO_PLUGIN', key)
+	function emitNotificationToPlugin(message: string): void {
+		emit('EMIT_NOTIFICATION_TO_PLUGIN', message)
 	}
 
 	function handleResponseFromPlugin(data: {
 		response: PresetOptionValue[]
-		message: PresetOptionKey
+		message: PresetMessage
 	}): void {
 		const { response, message } = data
 		if (response) {

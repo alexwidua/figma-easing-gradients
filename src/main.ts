@@ -15,7 +15,6 @@ import {
 	insertAfterNode,
 	collapseLayer
 } from '@create-figma-plugin/utilities'
-
 import {
 	DEFAULT_PRESETS,
 	DEFAULT_EASING_TYPE,
@@ -23,7 +22,6 @@ import {
 	DEFAULT_STEPS,
 	DEFAULT_SKIP
 } from './shared/default_values'
-
 import { PresetOptionValue } from './ui'
 
 type UISettings = { width: number; height: number }
@@ -39,14 +37,13 @@ export type EasingOptions = {
 	skip: string
 }
 
-const STORAGE_KEY_PRESETS: StorageKey = 'easing-gradients-v2-presets'
+const KEY_PLUGIN_DATA = 'easing-gradients-v2-data'
+const KEY_PRESETS: StorageKey = 'easing-gradients-v2-presets'
 const PREVIEW_ELEMENT_PREFIX = '[Preview]'
 
 export default async function () {
 	const ui: UISettings = { width: 280, height: 432 }
 	await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' })
-	showUI(ui)
-	handleInitialPresetEmitToUI()
 
 	let selectionRef: SceneNode | undefined
 	let cloneRef: SceneNode | undefined
@@ -81,13 +78,6 @@ export default async function () {
 			)
 			node.fills = tempNode
 		})
-	}
-
-	function applyEasingFunction(): void {
-		if (!selectionRef) return
-		updateGradientFill(selectionRef)
-		cleanUpCanvasPreview()
-		figma.closePlugin()
 	}
 
 	function createPreviewLabel(): GroupNode | void {
@@ -128,20 +118,21 @@ export default async function () {
 		return group
 	}
 
-	function updateCanvasPreview(node: SceneNode): void {
+	function updateCanvasPreview(): void {
 		if (!selectionRef || !cloneRef) return
 		selectionRef.locked = true
 		selectionRef.visible = false
 
 		cloneRef.locked = true
 
-		labelRef = createPreviewLabel() || undefined
-		if (labelRef) {
+		if (!labelRef) {
+			labelRef = createPreviewLabel() || undefined
+		} else {
 			labelRef.locked = true
 
 			cloneRef.name = `${PREVIEW_ELEMENT_PREFIX} Easing Gradients`
-			insertAfterNode(cloneRef, node)
-			insertAfterNode(labelRef, node)
+			insertAfterNode(cloneRef, selectionRef)
+			insertAfterNode(labelRef, selectionRef)
 		}
 		updateGradientFill(cloneRef)
 	}
@@ -150,6 +141,7 @@ export default async function () {
 		if (!selectionRef || !cloneRef) return
 		selectionRef.locked = false
 		selectionRef.visible = true
+		selectionRef = undefined
 
 		cloneRef.remove()
 		cloneRef = undefined
@@ -178,28 +170,28 @@ export default async function () {
 					cleanUpCanvasPreview()
 					selectionRef = selection
 					cloneRef = selectionRef.clone()
-					updateCanvasPreview(selectionRef)
+					updateCanvasPreview()
 				}
 			} else {
 				selectionRef = selection
 				cloneRef = selectionRef.clone()
-				updateCanvasPreview(selectionRef)
+				updateCanvasPreview()
 			}
 		}
-
-		emit('UPDATE_SELECTION_STATE', selectionState)
+		const pluginData = checkIfExistingEasingData(selectionRef)
+		emit('UPDATE_SELECTION_STATE', { selectionState, pluginData })
 	}
 
 	function handleUpdate(options: EasingOptions) {
 		state = { ...state, ...options }
-		handleSelectionChange()
+		updateCanvasPreview()
 	}
 
 	/**
 	 * Handle preset getting/setting
 	 */
 	async function handleInitialPresetEmitToUI(): Promise<void> {
-		getValueFromStoreOrInit(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
+		getValueFromStoreOrInit(KEY_PRESETS, DEFAULT_PRESETS)
 			.then((response: PresetOptionValue) => {
 				emit('INITIALLY_EMIT_PRESETS_TO_UI', response)
 			})
@@ -212,7 +204,7 @@ export default async function () {
 
 	async function handleReceivePresetsFromUI(data: any): Promise<void> {
 		const { presets, message } = data
-		setValueToStorage(STORAGE_KEY_PRESETS, presets)
+		setValueToStorage(KEY_PRESETS, presets)
 			.then((response: PresetOptionValue) => {
 				emit('RESPOND_TO_PRESETS_UPDATE', { response, message })
 				figma.notify(
@@ -225,7 +217,7 @@ export default async function () {
 	}
 
 	async function handleResetPresetsToDefault(): Promise<void> {
-		setValueToStorage(STORAGE_KEY_PRESETS, DEFAULT_PRESETS)
+		setValueToStorage(KEY_PRESETS, DEFAULT_PRESETS)
 			.then((response: PresetOptionValue) => {
 				emit('RESPOND_TO_PRESETS_UPDATE', {
 					response,
@@ -240,6 +232,32 @@ export default async function () {
 			})
 	}
 
+	function applyEasingFunction(): void {
+		if (!selectionRef) return
+		selectionRef.setRelaunchData({
+			ReapplyEasing: `Re-applies gradient easing with respect to first and last color stop.`
+		})
+		selectionRef.setPluginData(KEY_PLUGIN_DATA, JSON.stringify(state))
+
+		updateGradientFill(selectionRef)
+		cleanUpCanvasPreview()
+		figma.closePlugin()
+	}
+
+	function checkIfExistingEasingData(selection: any): any | undefined {
+		if (!selection) return
+		const pluginData = selection.getPluginData(KEY_PLUGIN_DATA)
+		if (pluginData) {
+			let data: any
+			try {
+				data = JSON.parse(pluginData)
+			} catch (e) {
+				return
+			}
+			return data
+		}
+	}
+
 	/**
 	 * Event listeners
 	 */
@@ -250,4 +268,22 @@ export default async function () {
 	on('EMIT_NOTIFICATION_TO_PLUGIN', handleNotificationFromUI)
 	figma.on('selectionchange', handleSelectionChange)
 	figma.on('close', cleanUpCanvasPreview)
+
+	/**
+	 * If plugin was launched via RelaunchButton
+	 */
+	if (figma.command === 'ReapplyEasing') {
+		const selection = figma.currentPage.selection[0]
+		const pluginData = checkIfExistingEasingData(selection)
+		if (pluginData) {
+			state = pluginData
+			updateGradientFill(selection)
+			figma.notify('Re-applied gradient easing.')
+			figma.closePlugin()
+		}
+	} else {
+		showUI(ui)
+		handleInitialPresetEmitToUI()
+		handleSelectionChange()
+	}
 }

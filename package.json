@@ -40,6 +40,13 @@
 		"id": "907899097995668330",
 		"name": "Easing Gradients",
 		"main": "src/main.ts",
-		"ui": "src/ui.tsx"
+		"ui": "src/ui.tsx",
+		"relaunchButtons": {
+			"ReapplyEasing": {
+				"name": "Re-apply gradient easing",
+				"main": "src/main.ts",
+				"ui": "src/ui.tsx"
+			}
+		}
 	}
 }
