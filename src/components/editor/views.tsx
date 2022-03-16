@@ -2,6 +2,7 @@ import { h } from 'preact'
 import style from './style.css'
 import easingCoordinates from 'easing-coordinates'
 import { Matrix, SkipOption } from '../../main'
+import { createClassName } from '../../utils/create-class-name'
 
 const Curve = ({
 	matrix = [
@@ -13,19 +14,10 @@ const Curve = ({
 }) => {
 	return (
 		<svg class={style.viewbox} viewBox="0 0 1 1" fill="none">
-			{/* diagonal line */}
-			<line
-				class={`${style.path} ${style.diagonal}`}
-				vector-effect="non-scaling-stroke"
-				x1="0"
-				y1="1"
-				x2="1"
-				y2="0"
-			/>
 			<g>
 				{/* thumb[0] connector */}
 				<line
-					class={style.path}
+					class={createClassName([style.path, style.connector])}
 					vector-effect="non-scaling-stroke"
 					x1="0"
 					y1="1"
@@ -34,7 +26,7 @@ const Curve = ({
 				/>
 				{/* thumb[1] connector --> */}
 				<line
-					class={style.path}
+					class={createClassName([style.path, style.connector])}
 					vector-effect="non-scaling-stroke"
 					x1="1"
 					y1="0"
@@ -50,8 +42,8 @@ const Curve = ({
 				/>
 				{/* terminal points */}
 				<g>
-					<circle class={style.point} cx="0" cy="1" r="0.01" />
-					<circle class={style.point} cx="1" cy="0" r="0.01" />
+					<circle class={style.point} cx="0" cy="1" r="0.015" />
+					<circle class={style.point} cx="1" cy="0" r="0.015" />
 				</g>
 			</g>
 		</svg>

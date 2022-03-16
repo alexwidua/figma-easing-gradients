@@ -14,21 +14,30 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
-	border: 1px solid var(--color-black-6-translucent);
-	box-shadow: inset 0px 0px 0px 1px var(--color-silver);
+	background-image: radial-gradient(rgba(0, 0, 0, 0.15) 1px, transparent 0);
+	background-position: 7px 7px;
+	background-size: 12px 12px;
+	transition: opacity 0.2s;
 	user-select: none;
+}
+
+.wrapper:hover .path.connector,
+.wrapper:hover .thumb {
+	opacity: 1;
 }
 
 /* Thumb */
 
 .thumb {
 	position: absolute;
-	width: 16px;
-	height: 16px;
+	width: 14px;
+	height: 14px;
 	background: var(--color-black);
 	border: 2px solid var(--color-white);
 	border-radius: 100%;
 	transform: translate(-50%, -50%);
+	opacity: 0;
+	transition: opacity 0.2s;
 }
 
 .thumb.dragged {
@@ -48,8 +57,14 @@
 
 .path {
 	fill: none;
-	stroke-width: 1px;
+	stroke-width: 2px;
 	stroke-linecap: round;
+	stroke: var(--color-blue);
+}
+
+.path.connector {
+	opacity: 0;
+	transition: opacity 0.2s;
 	stroke: var(--color-black);
 }
 
@@ -62,7 +77,7 @@
 }
 
 .point {
-	fill: var(--color-black);
+	fill: var(--color-white);
 	stroke: var(--color-black);
-	stroke-width: 0.005;
+	stroke-width: 0.01;
 }
