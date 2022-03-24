@@ -12,8 +12,8 @@ import {
 	emit,
 	showUI,
 	cloneObject,
-	insertAfterNode,
-	collapseLayer
+	insertAfterNode
+	//collapseLayer
 } from '@create-figma-plugin/utilities'
 import {
 	DEFAULT_PRESETS,
@@ -39,11 +39,13 @@ export type EasingOptions = {
 
 const KEY_PLUGIN_DATA = 'easing-gradients-v2-data'
 const KEY_PRESETS: StorageKey = 'easing-gradients-v2-presets'
-const PREVIEW_ELEMENT_PREFIX = '[Preview]'
+//const PREVIEW_ELEMENT_PREFIX = '[Preview]'
 
 export default async function () {
 	const ui: UISettings = { width: 280, height: 388 }
-	await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' })
+
+	// See comment L87
+	// await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' })
 
 	let selectionRef: SceneNode | undefined
 	let cloneRef: SceneNode | undefined
@@ -80,43 +82,49 @@ export default async function () {
 		})
 	}
 
-	function createPreviewLabel(): GroupNode | void {
-		if (!cloneRef) return
-		let elements = []
-		const baseHeight = 12
-		const baseWidth = 34
-		const zoom = figma.viewport.zoom / 1.6 // adjust viewport-relative scaling, guessed value
-		const width = baseWidth / zoom
-		const height = baseHeight / zoom
-		const fontSize = Math.max(8 / zoom, 1)
+	/**
+	 * ⚠️ The preview label is causing some issues in Version 8,
+	 * but right now I don't have capacity to investigate.
+	 * Since this feature has no priority, I'll disable it for Version 9.
+	 */
 
-		// label backdrop
-		const rect: RectangleNode = figma.createRectangle()
-		rect.resizeWithoutConstraints(width, height)
-		const rectColor = { r: 0.094, g: 0.627, b: 0.984 } // #18A0FB aka. Figma blue
-		rect.fills = [{ type: 'SOLID', color: rectColor }]
-		rect.cornerRadius = height / 8
-		// label text
-		const text: TextNode = figma.createText()
-		text.resizeWithoutConstraints(width, height)
-		const textColor = { r: 1, g: 1, b: 1 } //#fff
-		text.fills = [{ type: 'SOLID', color: textColor }]
-		text.fontSize = fontSize
-		text.textAlignHorizontal = 'CENTER'
-		text.textAlignVertical = 'CENTER'
-		text.characters = 'Preview'
+	// function createPreviewLabel(): GroupNode | void {
+	// 	if (!cloneRef) return
+	// 	let elements = []
+	// 	const baseHeight = 12
+	// 	const baseWidth = 34
+	// 	const zoom = figma.viewport.zoom / 1.6 // adjust viewport-relative scaling, guessed value
+	// 	const width = baseWidth / zoom
+	// 	const height = baseHeight / zoom
+	// 	const fontSize = Math.max(8 / zoom, 1)
 
-		elements.push(rect, text)
-		// label container
-		const group: GroupNode = figma.group(elements, figma.currentPage)
-		group.name = `${PREVIEW_ELEMENT_PREFIX} Label`
-		const margin = 2 / zoom
-		group.x = cloneRef.x
-		group.y = cloneRef.y - height - margin
+	// 	// label backdrop
+	// 	const rect: RectangleNode = figma.createRectangle()
+	// 	rect.resizeWithoutConstraints(width, height)
+	// 	const rectColor = { r: 0.094, g: 0.627, b: 0.984 } // #18A0FB aka. Figma blue
+	// 	rect.fills = [{ type: 'SOLID', color: rectColor }]
+	// 	rect.cornerRadius = height / 8
+	// 	// label text
+	// 	const text: TextNode = figma.createText()
+	// 	text.resizeWithoutConstraints(width, height)
+	// 	const textColor = { r: 1, g: 1, b: 1 } //#fff
+	// 	text.fills = [{ type: 'SOLID', color: textColor }]
+	// 	text.fontSize = fontSize
+	// 	text.textAlignHorizontal = 'CENTER'
+	// 	text.textAlignVertical = 'CENTER'
+	// 	text.characters = 'Preview'
 
-		collapseLayer(group)
-		return group
-	}
+	// 	elements.push(rect, text)
+	// 	// label container
+	// 	const group: GroupNode = figma.group(elements, figma.currentPage)
+	// 	group.name = `${PREVIEW_ELEMENT_PREFIX} Label`
+	// 	const margin = 2 / zoom
+	// 	group.x = cloneRef.x
+	// 	group.y = cloneRef.y - height - margin
+
+	// 	collapseLayer(group)
+	// 	return group
+	// }
 
 	function updateCanvasPreview(): void {
 		if (!selectionRef || !cloneRef) return
@@ -125,15 +133,17 @@ export default async function () {
 
 		cloneRef.locked = true
 
-		if (!labelRef) {
-			labelRef = createPreviewLabel() || undefined
-		} else {
-			labelRef.locked = true
+		// see L87
+		// if (!labelRef) {
+		// 	labelRef = createPreviewLabel() || undefined
+		// } else {
+		// 	labelRef.locked = true
 
-			cloneRef.name = `${PREVIEW_ELEMENT_PREFIX} Easing Gradients`
-			insertAfterNode(cloneRef, selectionRef)
-			insertAfterNode(labelRef, selectionRef)
-		}
+		// 	cloneRef.name = `${PREVIEW_ELEMENT_PREFIX} Easing Gradients`
+		// 	insertAfterNode(cloneRef, selectionRef)
+		// 	insertAfterNode(labelRef, selectionRef)
+		// }
+
 		updateGradientFill(cloneRef)
 	}
 
@@ -170,11 +180,13 @@ export default async function () {
 					cleanUpCanvasPreview()
 					selectionRef = selection
 					cloneRef = selectionRef.clone()
+					makeSureClonedNodeIsInPlace()
 					updateCanvasPreview()
 				}
 			} else {
 				selectionRef = selection
 				cloneRef = selectionRef.clone()
+				makeSureClonedNodeIsInPlace()
 				updateCanvasPreview()
 			}
 		}
@@ -185,6 +197,18 @@ export default async function () {
 	function handleUpdate(options: EasingOptions) {
 		state = { ...state, ...options }
 		updateCanvasPreview()
+	}
+
+	/**
+	 * Makes sure that the cloneRef node has the same position as it's selectionRef master.
+	 */
+	function makeSureClonedNodeIsInPlace(): void {
+		if (!selectionRef || !cloneRef) return
+		insertAfterNode(cloneRef, selectionRef)
+		if (selectionRef.parent?.type === 'GROUP') {
+			cloneRef.x = selectionRef.x
+			cloneRef.y = selectionRef.y
+		}
 	}
 
 	/**
@@ -278,7 +302,7 @@ export default async function () {
 		if (pluginData) {
 			state = pluginData
 			updateGradientFill(selection)
-			figma.notify('Re-applied gradient easing.')
+			figma.notify('Re-applied gradient easing.', { timeout: 3 })
 			figma.closePlugin()
 		}
 	} else {

@@ -1,1 +1,16 @@
-{"api":"1.0.0","editorType":["figma"],"id":"907899097995668330","name":"Easing Gradients","main":"build/main.js","ui":"build/ui.js","relaunchButtons":[{"name":"Re-apply gradient easing","command":"ReapplyEasing"}]}
+{
+  "api": "1.0.0",
+  "editorType": [
+    "figma"
+  ],
+  "id": "907899097995668330",
+  "name": "Easing Gradients",
+  "main": "build/main.js",
+  "ui": "build/ui.js",
+  "relaunchButtons": [
+    {
+      "name": "Re-apply gradient easing",
+      "command": "ReapplyEasing"
+    }
+  ]
+}
