@@ -45,8 +45,8 @@ export const DEFAULT_PRESETS: PresetOptionValue[] = [
 
 export const DEFAULT_EASING_TYPE: EasingType = 'CURVE'
 export const DEFAULT_MATRIX: Matrix = [
-	[0.65, 0.0],
-	[0.35, 1.0]
+	[0.42, 0.0],
+	[0.58, 1.0]
 ]
 export const DEFAULT_STEPS: number = 8
 export const DEFAULT_SKIP: SkipOption = 'skip-none'

@@ -84,14 +84,14 @@ const OPTION_EASING_TYPE: DropdownOption[] = [
 const OPTIONS_JUMPS: { children: string; value: SkipOption }[] = [
 	{ children: 'jump-none', value: 'skip-none' },
 	{ children: 'jump-both', value: 'skip-both' },
-	{ children: 'jump-start', value: 'start' },
-	{ children: 'jump-end', value: 'end' }
+	{ children: 'jump-start', value: 'skip-start' },
+	{ children: 'jump-end', value: 'skip-end' }
 ]
 const JUMP_ICON: { [type in SkipOption]: ComponentChildren } = {
 	'skip-none': DropdownJumpNoneIcon,
 	'skip-both': DropdownJumpBothIcon,
-	start: DropdownJumpStartIcon,
-	end: DropdownJumpEndIcon
+	'skip-start': DropdownJumpStartIcon,
+	'skip-end': DropdownJumpEndIcon
 }
 const BUTTON_STATE: SelectionKeyMap = {
 	EMPTY: 'No element selected',
@@ -148,7 +148,7 @@ const Plugin = () => {
 	 * Register event listeners
 	 */
 	useEffect(() => {
-		on('INITIALLY_EMIT_PRESETS_TO_UI', storedPresets => {
+		on('INITIALLY_EMIT_PRESETS_TO_UI', (storedPresets) => {
 			if (storedPresets.length) {
 				setPresets([...storedPresets])
 			}
@@ -185,7 +185,7 @@ const Plugin = () => {
 	 */
 	function handleMatrixInput(e: JSX.TargetedEvent<HTMLInputElement>): void {
 		const value = e.currentTarget.value.split(', ').map(Number)
-		const isValidValue = value.every(e => e >= 0 && e <= 1)
+		const isValidValue = value.every((e) => e >= 0 && e <= 1)
 
 		if (value.length === 4 && isValidValue) {
 			setMatrix([
@@ -360,17 +360,17 @@ const Plugin = () => {
 	}, [easingType, matrix, steps, jump])
 
 	const debounceNumItemsChange = useCallback(
-		debounce(data => emit('UPDATE_FROM_UI', data), debounceWaitTime),
+		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
 		[]
 	)
 
 	return (
 		<Container>
-			<VerticalSpace space="extraSmall" />
-			<Columns space="extraSmall">
+			<VerticalSpace space='extraSmall' />
+			<Columns space='extraSmall'>
 				<Dropdown
 					value={easingType}
-					onChange={e =>
+					onChange={(e) =>
 						setEasingType(e.currentTarget.value as EasingType)
 					}
 					icon={
@@ -395,8 +395,7 @@ const Plugin = () => {
 								? 'all'
 								: 'none'
 					}}
-					onKeyDown={handlePresetMenuKeyDown}
-				>
+					onKeyDown={handlePresetMenuKeyDown}>
 					<PresetInput
 						showInputDialog={showPresetInputDialog}
 						value={tempCustomPresetName}
@@ -417,7 +416,7 @@ const Plugin = () => {
 					/>
 				</div>
 			</Columns>
-			<VerticalSpace space="extraSmall" />
+			<VerticalSpace space='extraSmall' />
 			<Editor
 				easingType={easingType}
 				matrix={matrix}
@@ -425,17 +424,17 @@ const Plugin = () => {
 				jump={jump}
 				onEditorChange={handleEditorChange}
 			/>
-			<VerticalSpace space="extraSmall" />
+			<VerticalSpace space='extraSmall' />
 			{(easingType as EasingType) === 'CURVE' ? (
 				<Textbox
 					value={[...matrix[0], ...matrix[1]]
-						.map(vec => showDecimals(vec, 2))
+						.map((vec) => showDecimals(vec, 2))
 						.join(', ')}
 					icon={TextboxMatrixIcon}
 					onBlurCapture={handleMatrixInput}
 				/>
 			) : (
-				<Columns space="extraSmall">
+				<Columns space='extraSmall'>
 					<TextboxNumeric
 						icon={TextboxStepIcon}
 						onInput={handleStepInput}
@@ -444,19 +443,18 @@ const Plugin = () => {
 					<Dropdown
 						value={jump}
 						icon={JUMP_ICON[jump]}
-						onChange={e =>
+						onChange={(e) =>
 							setJump(e.currentTarget.value as SkipOption)
 						}
 						options={OPTIONS_JUMPS}
 					/>
 				</Columns>
 			)}
-			<VerticalSpace space="extraSmall" />
+			<VerticalSpace space='extraSmall' />
 			<Button
 				fullWidth
 				onClick={() => emit('APPLY_EASING_FUNCTION')}
-				disabled={(selectionState as SelectionKey) !== 'VALID'}
-			>
+				disabled={(selectionState as SelectionKey) !== 'VALID'}>
 				{BUTTON_STATE[selectionState]}
 			</Button>
 		</Container>

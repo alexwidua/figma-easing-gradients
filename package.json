@@ -13,8 +13,8 @@
 	"dependencies": {
 		"@create-figma-plugin/ui": "^1.2.2",
 		"@create-figma-plugin/utilities": "^1.2.2",
+		"bezier-easing": "^2.1.0",
 		"chroma-js": "^2.1.2",
-		"easing-coordinates": "^2.0.2",
 		"preact": "^10.5.14",
 		"stylelint-config-idiomatic-order": "^8.1.0"
 	},

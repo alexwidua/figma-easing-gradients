@@ -29,7 +29,7 @@ type StorageKey = `easing-gradients-${string | number}`
 
 export type EasingType = 'CURVE' | 'STEPS'
 export type Matrix = number[][]
-export type SkipOption = 'skip-none' | 'skip-both' | 'start' | 'end'
+export type SkipOption = 'skip-none' | 'skip-both' | 'skip-start' | 'skip-end'
 export type EasingOptions = {
 	type: EasingType
 	matrix: Matrix
