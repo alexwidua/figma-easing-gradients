@@ -11,6 +11,10 @@
     {
       "name": "Re-apply gradient easing",
       "command": "ReapplyEasing"
+    },
+    {
+      "name": "Reset gradient easing",
+      "command": "ResetEasing"
     }
   ]
 }

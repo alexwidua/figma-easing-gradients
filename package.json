@@ -49,6 +49,11 @@
 				"name": "Re-apply gradient easing",
 				"main": "src/main.ts",
 				"ui": "src/ui.tsx"
+			},
+			"ResetEasing": {
+				"name": "Reset gradient easing",
+				"main": "src/main.ts",
+				"ui": "src/ui.tsx"
 			}
 		}
 	},

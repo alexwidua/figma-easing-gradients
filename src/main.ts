@@ -5,14 +5,14 @@ import {
 	validateSelection,
 	getValueFromStoreOrInit,
 	setValueToStorage,
-	handleNotificationFromUI
+	handleNotificationFromUI,
 } from './utils'
 import {
 	on,
 	emit,
 	showUI,
 	cloneObject,
-	insertAfterNode
+	insertAfterNode,
 	//collapseLayer
 } from '@create-figma-plugin/utilities'
 import {
@@ -20,7 +20,7 @@ import {
 	DEFAULT_EASING_TYPE,
 	DEFAULT_MATRIX,
 	DEFAULT_STEPS,
-	DEFAULT_SKIP
+	DEFAULT_SKIP,
 } from './shared/default_values'
 import { PresetOptionValue } from './ui'
 
@@ -39,6 +39,7 @@ export type EasingOptions = {
 
 const KEY_PLUGIN_DATA = 'easing-gradients-v2-data'
 const KEY_PRESETS: StorageKey = 'easing-gradients-v2-presets'
+const KEY_ORIGINAL_FILLS = 'originalFills'
 //const PREVIEW_ELEMENT_PREFIX = '[Preview]'
 
 export default async function () {
@@ -54,32 +55,69 @@ export default async function () {
 		type: DEFAULT_EASING_TYPE,
 		matrix: DEFAULT_MATRIX,
 		steps: DEFAULT_STEPS,
-		skip: DEFAULT_SKIP
+		skip: DEFAULT_SKIP,
 	}
 
 	/**
 	 * Functions
 	 */
-	function updateGradientFill(node: SceneNode): void {
+	function updateGradientFill(node: SceneNode, reset: boolean = false): void {
 		if (!node) return console.error(`Couldn't get node.`)
 		if (!nodeIsGeometryMixin(node))
 			return console.warn('Selected node is not a shape.')
-		const fills = node.fills as Paint[]
 
+		// if we have already been applied to this node, restore the original gradient stops before re-applying
+		const origGradients = safeGetPluginData<GradientPaint[]>(
+			node,
+			KEY_ORIGINAL_FILLS
+		)
+		if (origGradients !== undefined) {
+			console.log(`restored data from "${KEY_ORIGINAL_FILLS}"`)
+			// TODO: validate this data
+		}
+		const fills = node.fills
+		if (fills == figma.mixed) {
+			return console.warn('Selected node has mixed fills.')
+		}
+
+		// Save the gradient fills from before we modified them
+		const save = origGradients
+			? origGradients
+			: fills.filter((f) => isGradientFillWithMultipleStops(f))
+		if (reset) {
+			node.setPluginData(KEY_ORIGINAL_FILLS, '')
+		} else {
+			node.setPluginData(KEY_ORIGINAL_FILLS, JSON.stringify(save))
+		}
+
+		const tempFills = cloneObject(
+			fills
+		) as Paint[] /* remove readonly with cast */
+
+		// If gradient fills are mixed with other fills, allow the user to add/remove fills and just assume that the gradient fill indices stay constant
+		let gradIndex = 0
 		fills.forEach((fillProperty, index) => {
 			if (!isGradientFillWithMultipleStops(fillProperty))
 				return console.warn(
 					'Selected node does not contain gradient fills.'
 				)
+			if (origGradients && gradIndex < origGradients.length) {
+				// Assign a temp variable so type inference knows fillProperty and orig are both GradientFill
+				const orig = origGradients[gradIndex]
+				if (isGradientFillWithMultipleStops(orig)) {
+					fillProperty = orig
+				}
+			}
 
-			const tempNode: any = cloneObject(node.fills)
-
-			tempNode[index].gradientStops = interpolateColorStops(
-				fillProperty,
-				state
-			)
-			node.fills = tempNode
+			tempFills[index] = {
+				...fillProperty,
+				gradientStops: reset
+					? fillProperty.gradientStops
+					: interpolateColorStops(fillProperty, state),
+			}
+			gradIndex++
 		})
+		node.fills = tempFills
 	}
 
 	/**
@@ -245,7 +283,7 @@ export default async function () {
 			.then((response: PresetOptionValue) => {
 				emit('RESPOND_TO_PRESETS_UPDATE', {
 					response,
-					message: 'RESET'
+					message: 'RESET',
 				})
 				figma.notify(
 					'Removed all presets and restored default presets.'
@@ -259,7 +297,8 @@ export default async function () {
 	function applyEasingFunction(): void {
 		if (!selectionRef) return
 		selectionRef.setRelaunchData({
-			ReapplyEasing: `Re-applies gradient easing with respect to first and last color stop.`
+			ReapplyEasing: `Adjust gradient easing.`,
+			ResetEasing: `Reset gradient to what it was before easing was applied.`,
 		})
 		selectionRef.setPluginData(KEY_PLUGIN_DATA, JSON.stringify(state))
 
@@ -268,18 +307,27 @@ export default async function () {
 		figma.closePlugin()
 	}
 
-	function checkIfExistingEasingData(selection: any): any | undefined {
+	// TODO: parse returned data, don't assume it has the correct type
+	function safeGetPluginData<T>(
+		selection: SceneNode | undefined,
+		key: string
+	): T | undefined {
 		if (!selection) return
-		const pluginData = selection.getPluginData(KEY_PLUGIN_DATA)
+		const pluginData = selection.getPluginData(key)
 		if (pluginData) {
-			let data: any
 			try {
-				data = JSON.parse(pluginData)
-			} catch (e) {
-				return
+				return JSON.parse(pluginData) as T
+			} catch {
+				return undefined
 			}
-			return data
 		}
+		return undefined
+	}
+
+	function checkIfExistingEasingData(
+		selection: SceneNode | undefined
+	): EasingOptions | undefined {
+		return safeGetPluginData(selection, KEY_PLUGIN_DATA)
 	}
 
 	/**
@@ -303,8 +351,20 @@ export default async function () {
 			state = pluginData
 			updateGradientFill(selection)
 			figma.notify('Re-applied gradient easing.', { timeout: 3 })
-			figma.closePlugin()
 		}
+		selection.setRelaunchData({
+			ReapplyEasing: `Adjust gradient easing.`,
+			ResetEasing: `Reset gradient to what it was before easing was applied.`,
+		})
+		figma.closePlugin()
+	} else if (figma.command === 'ResetEasing') {
+		const selection = figma.currentPage.selection[0]
+		updateGradientFill(selection, true)
+		selection.setRelaunchData({
+			ReapplyEasing: `Add easing back.`,
+		})
+		figma.notify('Reset gradient easing.', { timeout: 3 })
+		figma.closePlugin()
 	} else {
 		showUI(ui)
 		handleInitialPresetEmitToUI()
