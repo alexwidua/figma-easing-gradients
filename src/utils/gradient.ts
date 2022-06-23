@@ -13,52 +13,62 @@ import { EasingType, EasingOptions } from '../main'
  * @returns false if fill isn't a gradient fill, ex. SolidPaint or ImagePaint
  */
 export function isGradientFillWithMultipleStops(
-	fill: Paint
+    fill: Paint
 ): fill is GradientPaint {
-	return 'gradientStops' in fill && fill?.gradientStops?.length > 1
+    return 'gradientStops' in fill && fill?.gradientStops?.length > 1
 }
 
 /**
- * Interpolates two color stops with a given set of coordinates or number fo steps.
+ * Interpolates the current stops by larger number of easing steps
  * @returns Returns an array of color stops which represents the eased color gradient.
  */
 export function interpolateColorStops(
-	fill: GradientPaint,
-	options: EasingOptions
+    fill: GradientPaint,
+    options: EasingOptions
 ): ColorStop[] {
-	const { type, matrix, steps, skip } = options
+    const { type, matrix, steps, skip } = options
+    const { gradientStops } = fill
 
-	const stops = [
-		fill.gradientStops[0],
-		fill.gradientStops[fill.gradientStops.length - 1]
-	]
-	const stopColor = [gl(stops[0]), gl(stops[1])]
-	const stopPosition = [stops[0].position, stops[1].position]
+    console.log('interpolating ', { options, gradientStops })
 
-	// How many color stops are used to interpolate between first and last stop
-	// TODO: Should this be an user-facing option?
-	const granularity = 15
+    // How many color stops are used to interpolate between first and last stop
+    // TODO: Should this be an user-facing option?
+    const granularity = 15
 
-	const coordinates =
-		(type as EasingType) == 'CURVE'
-			? easingCoordinates(
-					`cubic-bezier(
-						${matrix[0][0]},
-						${matrix[0][1]},
-						${matrix[1][0]},${matrix![0][0]})`,
-					granularity
-			  )
-			: easingCoordinates(`steps(${steps}, ${skip})`)
+    let stops: ColorStop[] = []
+    for (let i = 0; i < gradientStops.length - 1; i++) {
+        const start = gradientStops[i]
+        const end = gradientStops[i + 1]
 
-	return coordinates.map(position => {
-		const [r, g, b, a] = chroma
-			.mix(stopColor[0], stopColor[1], position.y, 'rgb')
-			.gl()
-		return {
-			color: { r, g, b, a },
-			position:
-				stopPosition[0] +
-				position.x * (stopPosition[1] - stopPosition[0])
-		}
-	})
+        const coordinates =
+            type == 'CURVE'
+                ? easingCoordinates(
+                      `cubic-bezier(
+        				${matrix[0][0]},
+        				${matrix[0][1]},
+        				${matrix[1][0]},
+        				${matrix[1][1]})`,
+                      granularity
+                  )
+                : easingCoordinates(`steps(${steps}, ${skip})`)
+
+        // if we're not at the end, drop the last coordinate
+        if (i < gradientStops.length - 2) {
+            coordinates.pop()
+        }
+
+        stops = stops.concat(
+            coordinates.map((t) => {
+                const [r, g, b, a] = chroma
+                    .mix(gl(start), gl(end), t.y, 'rgb')
+                    .gl()
+                return {
+                    color: { r, g, b, a },
+                    position:
+                        start.position + t.x * (end.position - start.position),
+                }
+            })
+        )
+    }
+    return stops
 }
