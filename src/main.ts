@@ -39,6 +39,7 @@ export type EasingOptions = {
 
 const KEY_PLUGIN_DATA = 'easing-gradients-v2-data'
 const KEY_PRESETS: StorageKey = 'easing-gradients-v2-presets'
+const KEY_ORIGINAL_FILLS = 'originalFills'
 //const PREVIEW_ELEMENT_PREFIX = '[Preview]'
 
 export default async function () {
@@ -60,20 +61,23 @@ export default async function () {
     /**
      * Functions
      */
-    function updateGradientFill(node: SceneNode): void {
+    function updateGradientFill(node: SceneNode, reset: boolean = false): void {
         if (!node) return console.error(`Couldn't get node.`)
         if (!nodeIsGeometryMixin(node))
             return console.warn('Selected node is not a shape.')
 
-        const dataKey = 'originalFills'
-
         // if we have already been applied to this node, restore the original gradient stops before re-applying
-        const orig = node.getPluginData(dataKey)
-        let origGradients: GradientPaint[] | undefined
-        if (orig !== undefined && orig.length > 0) {
-            console.log(`restored data from "${dataKey}": "${orig}""`)
+        const origGradients = safeGetPluginData<GradientPaint[]>(
+            node,
+            KEY_ORIGINAL_FILLS
+        )
+        if (origGradients !== undefined) {
+            console.log(
+                `restored data from "${KEY_ORIGINAL_FILLS}": "${JSON.stringify(
+                    origGradients
+                )}""`
+            )
             // TODO: validate this data
-            origGradients = JSON.parse(orig) as GradientPaint[]
         }
         const fills = node.fills
         if (fills == figma.mixed) {
@@ -84,7 +88,11 @@ export default async function () {
         const save = origGradients
             ? origGradients
             : fills.filter((f) => isGradientFillWithMultipleStops(f))
-        node.setPluginData(dataKey, JSON.stringify(save))
+        if (reset) {
+            node.setPluginData(KEY_ORIGINAL_FILLS, '')
+        } else {
+            node.setPluginData(KEY_ORIGINAL_FILLS, JSON.stringify(save))
+        }
 
         const tempFills = cloneObject(
             fills
@@ -107,7 +115,9 @@ export default async function () {
 
             tempFills[index] = {
                 ...fillProperty,
-                gradientStops: interpolateColorStops(fillProperty, state),
+                gradientStops: reset
+                    ? fillProperty.gradientStops
+                    : interpolateColorStops(fillProperty, state),
             }
             gradIndex++
         })
@@ -291,7 +301,8 @@ export default async function () {
     function applyEasingFunction(): void {
         if (!selectionRef) return
         selectionRef.setRelaunchData({
-            ReapplyEasing: `Re-applies gradient easing with respect to first and last color stop.`,
+            ReapplyEasing: `Adjust gradient easing.`,
+            ResetEasing: `Reset gradient to what it was before easing was applied.`,
         })
         selectionRef.setPluginData(KEY_PLUGIN_DATA, JSON.stringify(state))
 
@@ -300,18 +311,27 @@ export default async function () {
         figma.closePlugin()
     }
 
-    function checkIfExistingEasingData(selection: any): any | undefined {
+    // TODO: parse returned data, don't assume it has the correct type
+    function safeGetPluginData<T>(
+        selection: SceneNode | undefined,
+        key: string
+    ): T | undefined {
         if (!selection) return
-        const pluginData = selection.getPluginData(KEY_PLUGIN_DATA)
+        const pluginData = selection.getPluginData(key)
         if (pluginData) {
-            let data: any
             try {
-                data = JSON.parse(pluginData)
-            } catch (e) {
-                return
+                return JSON.parse(pluginData) as T
+            } catch {
+                return undefined
             }
-            return data
         }
+        return undefined
+    }
+
+    function checkIfExistingEasingData(
+        selection: SceneNode | undefined
+    ): EasingOptions | undefined {
+        return safeGetPluginData(selection, KEY_PLUGIN_DATA)
     }
 
     /**
@@ -335,8 +355,20 @@ export default async function () {
             state = pluginData
             updateGradientFill(selection)
             figma.notify('Re-applied gradient easing.', { timeout: 3 })
-            figma.closePlugin()
         }
+        selection.setRelaunchData({
+            ReapplyEasing: `Adjust gradient easing.`,
+            ResetEasing: `Reset gradient to what it was before easing was applied.`,
+        })
+        figma.closePlugin()
+    } else if (figma.command === 'ResetEasing') {
+        const selection = figma.currentPage.selection[0]
+        updateGradientFill(selection, true)
+        selection.setRelaunchData({
+            ReapplyEasing: `Add easing back.`,
+        })
+        figma.notify('Reset gradient easing.', { timeout: 3 })
+        figma.closePlugin()
     } else {
         showUI(ui)
         handleInitialPresetEmitToUI()

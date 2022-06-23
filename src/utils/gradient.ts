@@ -52,7 +52,7 @@ export function interpolateColorStops(
                   )
                 : easingCoordinates(`steps(${steps}, ${skip})`)
 
-        // if we're not at the end, drop the last coordinate
+        // if we're not at the end, drop the last coordinate so we don't add redundant stops
         if (i < gradientStops.length - 2) {
             coordinates.pop()
         }
