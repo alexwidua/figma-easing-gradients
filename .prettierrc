@@ -1,6 +1,7 @@
 {
     "trailingComma": "es5",
     "tabWidth": 4,
+    "useTabs": true,
     "max_line_length": 120,
     "semi": false,
     "singleQuote": true
