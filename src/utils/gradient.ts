@@ -29,8 +29,6 @@ export function interpolateColorStops(
 	const { type, matrix, steps, skip } = options
 	const { gradientStops } = fill
 
-	console.log('interpolating ', { options, gradientStops })
-
 	// How many color stops are used to interpolate between first and last stop
 	// TODO: Should this be an user-facing option?
 	const granularity = 15

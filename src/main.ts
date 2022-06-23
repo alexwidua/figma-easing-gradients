@@ -72,11 +72,7 @@ export default async function () {
 			KEY_ORIGINAL_FILLS
 		)
 		if (origGradients !== undefined) {
-			console.log(
-				`restored data from "${KEY_ORIGINAL_FILLS}": "${JSON.stringify(
-					origGradients
-				)}""`
-			)
+			console.log(`restored data from "${KEY_ORIGINAL_FILLS}"`)
 			// TODO: validate this data
 		}
 		const fills = node.fills
