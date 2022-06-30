@@ -33,6 +33,7 @@ export type SkipOption = 'skip-none' | 'skip-both' | 'start' | 'end'
 export type EasingOptions = {
 	type: EasingType
 	matrix: Matrix
+	colorSpace?: chroma.InterpolationMode
 	steps: number
 	skip: string
 }

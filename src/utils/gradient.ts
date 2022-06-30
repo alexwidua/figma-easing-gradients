@@ -26,8 +26,10 @@ export function interpolateColorStops(
 	fill: GradientPaint,
 	options: EasingOptions
 ): ColorStop[] {
-	const { type, matrix, steps, skip } = options
+	const { type, matrix, steps, skip, colorSpace = 'rgb' } = options
 	const { gradientStops } = fill
+
+	console.log('colorSpace', colorSpace)
 
 	// How many color stops are used to interpolate between first and last stop
 	// TODO: Should this be an user-facing option?
@@ -58,7 +60,7 @@ export function interpolateColorStops(
 		stops = stops.concat(
 			coordinates.map((t) => {
 				const [r, g, b, a] = chroma
-					.mix(gl(start), gl(end), t.y, 'rgb')
+					.mix(gl(start), gl(end), t.y, colorSpace)
 					.gl()
 				return {
 					color: { r, g, b, a },

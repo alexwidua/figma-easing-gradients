@@ -13,13 +13,13 @@ import {
 	Dropdown,
 	useMouseDownOutside,
 	VerticalSpace,
-	MiddleAlign
+	MiddleAlign,
 } from '@create-figma-plugin/ui'
 import {
 	debounce,
 	showDecimals,
 	getRandomString,
-	describeCurveInAdjectives
+	describeCurveInAdjectives,
 } from './utils'
 import { Editor, PresetMenu, PresetInput } from './components'
 import {
@@ -30,13 +30,13 @@ import {
 	DropdownJumpStartIcon,
 	DropdownJumpEndIcon,
 	CurveIcon,
-	StepIcon
+	StepIcon,
 } from './icons'
 import {
 	DEFAULT_EASING_TYPE,
 	DEFAULT_MATRIX,
 	DEFAULT_STEPS,
-	DEFAULT_SKIP
+	DEFAULT_SKIP,
 } from './shared/default_values'
 
 /**
@@ -46,6 +46,7 @@ import { DropdownOption } from '@create-figma-plugin/ui'
 import { SelectionKey, SelectionKeyMap } from './utils/'
 import { EasingOptions, EasingType, Matrix, SkipOption } from './main'
 import { EditorChange } from './components/editor/editor'
+import chroma from 'chroma-js'
 
 export type PresetOption =
 	| PresetOptionHeader
@@ -79,26 +80,33 @@ const COPY_PLACEHOLDER_AFTER_INTERACTION: string = 'Custom'
 const OPTION_NO_PRESETS: PresetOptionHeader[] = [{ header: 'No presets.' }]
 const OPTION_EASING_TYPE: DropdownOption[] = [
 	{ children: 'Curve', value: 'CURVE' },
-	{ children: 'Steps', value: 'STEPS' }
+	{ children: 'Steps', value: 'STEPS' },
+]
+
+const OPTION_COLOR_SPACE: DropdownOption[] = [
+	{ children: 'RGB', value: 'rgb' },
+	{ children: 'HSL', value: 'hsl' },
+	{ children: 'LAB', value: 'lab' },
+	{ children: 'LCH', value: 'lch' },
 ]
 const OPTIONS_JUMPS: { children: string; value: SkipOption }[] = [
 	{ children: 'jump-none', value: 'skip-none' },
 	{ children: 'jump-both', value: 'skip-both' },
 	{ children: 'jump-start', value: 'start' },
-	{ children: 'jump-end', value: 'end' }
+	{ children: 'jump-end', value: 'end' },
 ]
 const JUMP_ICON: { [type in SkipOption]: ComponentChildren } = {
 	'skip-none': DropdownJumpNoneIcon,
 	'skip-both': DropdownJumpBothIcon,
 	start: DropdownJumpStartIcon,
-	end: DropdownJumpEndIcon
+	end: DropdownJumpEndIcon,
 }
 const BUTTON_STATE: SelectionKeyMap = {
 	EMPTY: 'No element selected',
 	MULTIPLE_ELEMENTS: 'Multiple elements',
 	INVALID_TYPE: 'Invalid element',
 	NO_GRADIENT_FILL: 'No gradient fill',
-	VALID: 'Apply'
+	VALID: 'Apply',
 }
 
 const Plugin = () => {
@@ -133,6 +141,8 @@ const Plugin = () => {
 	const [matrix, setMatrix] = useState<Matrix>(DEFAULT_MATRIX)
 	const [steps, setSteps] = useState<number>(DEFAULT_STEPS)
 	const [jump, setJump] = useState<SkipOption>(DEFAULT_SKIP)
+	const [colorSpace, setColorSpace] =
+		useState<chroma.InterpolationMode>('rgb')
 	const [selectionState, setSelectionState] =
 		useState<SelectionKey>('INVALID_TYPE')
 
@@ -141,14 +151,15 @@ const Plugin = () => {
 		type: easingType,
 		matrix,
 		steps,
-		skip: jump
+		colorSpace,
+		skip: jump,
 	}
 
 	/**
 	 * Register event listeners
 	 */
 	useEffect(() => {
-		on('INITIALLY_EMIT_PRESETS_TO_UI', storedPresets => {
+		on('INITIALLY_EMIT_PRESETS_TO_UI', (storedPresets) => {
 			if (storedPresets.length) {
 				setPresets([...storedPresets])
 			}
@@ -156,11 +167,12 @@ const Plugin = () => {
 		on('UPDATE_SELECTION_STATE', ({ selectionState, pluginData }) => {
 			setSelectionState(selectionState)
 			if (pluginData) {
-				const { type, matrix, steps, skip } = pluginData
+				const { type, matrix, steps, skip, colorSpace } = pluginData
 				if (!type || !matrix || !steps || !skip) return
 				setEasingType(type)
 				setMatrix(matrix)
 				setSteps(steps)
+				if (colorSpace) setColorSpace(colorSpace)
 				setJump(skip)
 				emitNotificationToPlugin('Restored previous easing settings.')
 			}
@@ -185,12 +197,12 @@ const Plugin = () => {
 	 */
 	function handleMatrixInput(e: JSX.TargetedEvent<HTMLInputElement>): void {
 		const value = e.currentTarget.value.split(', ').map(Number)
-		const isValidValue = value.every(e => e >= 0 && e <= 1)
+		const isValidValue = value.every((e) => e >= 0 && e <= 1)
 
 		if (value.length === 4 && isValidValue) {
 			setMatrix([
 				[value[0], value[1]],
-				[value[2], value[3]]
+				[value[2], value[3]],
 			])
 			setSelectedPreset(null)
 		}
@@ -245,7 +257,7 @@ const Plugin = () => {
 				const tempCustomPresetName: CustomPresetKey = `CUSTOM_${getRandomString()}`
 				const newPreset: PresetOptionValue = {
 					value: tempCustomPresetName,
-					matrix: [...matrix]
+					matrix: [...matrix],
 				}
 				const placeholder = describeCurveInAdjectives([...matrix])
 				setTempCustomPresetStore(newPreset)
@@ -334,7 +346,7 @@ const Plugin = () => {
 	const ref = useRef<HTMLDivElement>(null)
 	useMouseDownOutside({
 		onMouseDownOutside: () => handleMouseDownOutside(),
-		ref
+		ref,
 	})
 	function handleMouseDownOutside(): void {
 		setShowManagingPresetsDialog(false)
@@ -356,11 +368,11 @@ const Plugin = () => {
 	const debounceWaitTime = 100 //ms
 
 	useEffect(() => {
-		debounceNumItemsChange(messageData)
-	}, [easingType, matrix, steps, jump])
+		debouncedUpdate(messageData)
+	}, [easingType, colorSpace, matrix, steps, jump])
 
-	const debounceNumItemsChange = useCallback(
-		debounce(data => emit('UPDATE_FROM_UI', data), debounceWaitTime),
+	const debouncedUpdate = useCallback(
+		debounce((data) => emit('UPDATE_FROM_UI', data), debounceWaitTime),
 		[]
 	)
 
@@ -369,8 +381,19 @@ const Plugin = () => {
 			<VerticalSpace space="extraSmall" />
 			<Columns space="extraSmall">
 				<Dropdown
+					value={colorSpace}
+					onChange={(e) =>
+						setColorSpace(
+							e.currentTarget.value as chroma.InterpolationMode
+						)
+					}
+					icon={<CurveIcon size={12} matrix={matrix} />}
+					options={OPTION_COLOR_SPACE}
+				/>
+
+				<Dropdown
 					value={easingType}
-					onChange={e =>
+					onChange={(e) =>
 						setEasingType(e.currentTarget.value as EasingType)
 					}
 					icon={
@@ -393,7 +416,7 @@ const Plugin = () => {
 						pointerEvents:
 							(easingType as EasingType) === 'CURVE'
 								? 'all'
-								: 'none'
+								: 'none',
 					}}
 					onKeyDown={handlePresetMenuKeyDown}
 				>
@@ -429,7 +452,7 @@ const Plugin = () => {
 			{(easingType as EasingType) === 'CURVE' ? (
 				<Textbox
 					value={[...matrix[0], ...matrix[1]]
-						.map(vec => showDecimals(vec, 2))
+						.map((vec) => showDecimals(vec, 2))
 						.join(', ')}
 					icon={TextboxMatrixIcon}
 					onBlurCapture={handleMatrixInput}
@@ -444,7 +467,7 @@ const Plugin = () => {
 					<Dropdown
 						value={jump}
 						icon={JUMP_ICON[jump]}
-						onChange={e =>
+						onChange={(e) =>
 							setJump(e.currentTarget.value as SkipOption)
 						}
 						options={OPTIONS_JUMPS}
