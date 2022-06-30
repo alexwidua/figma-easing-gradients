@@ -85,6 +85,7 @@ const OPTION_EASING_TYPE: DropdownOption[] = [
 
 const OPTION_COLOR_SPACE: DropdownOption[] = [
 	{ children: 'RGB', value: 'rgb' },
+	{ children: 'LRGB', value: 'lrgb' },
 	{ children: 'HSL', value: 'hsl' },
 	{ children: 'LAB', value: 'lab' },
 	{ children: 'LCH', value: 'lch' },
