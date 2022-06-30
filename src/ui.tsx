@@ -381,17 +381,6 @@ const Plugin = () => {
 			<VerticalSpace space="extraSmall" />
 			<Columns space="extraSmall">
 				<Dropdown
-					value={colorSpace}
-					onChange={(e) =>
-						setColorSpace(
-							e.currentTarget.value as chroma.InterpolationMode
-						)
-					}
-					icon={<CurveIcon size={12} matrix={matrix} />}
-					options={OPTION_COLOR_SPACE}
-				/>
-
-				<Dropdown
 					value={easingType}
 					onChange={(e) =>
 						setEasingType(e.currentTarget.value as EasingType)
@@ -404,6 +393,15 @@ const Plugin = () => {
 						)
 					}
 					options={OPTION_EASING_TYPE}
+				/>
+				<Dropdown
+					value={colorSpace}
+					onChange={(e) =>
+						setColorSpace(
+							e.currentTarget.value as chroma.InterpolationMode
+						)
+					}
+					options={OPTION_COLOR_SPACE}
 				/>
 				<div
 					ref={ref}
