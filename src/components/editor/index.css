@@ -7,7 +7,7 @@
 	/* Grid */
 	background-image: radial-gradient(rgba(1, 1, 1, 0.2) 1px, transparent 0);
 	background-position: 0px 0px;
-	background-size: 8px 8px;
+	background-size: 13px 13px;
 	transition: opacity 0.2s;
 	user-select: none;
 }
@@ -62,5 +62,15 @@
 .point {
 	fill: #fafafa;
 	stroke: #000;
-	stroke-width: 0.02;
+}
+
+.cthumb {
+	width: 12px;
+	height: 12px;
+	background: #fff;
+	border: 1px solid #000;
+	position: absolute;
+	left: 0;
+	top: 0;
+	border-radius: 100%;
 }

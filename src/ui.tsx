@@ -52,16 +52,12 @@ export type PresetMessage = 'ADD' | 'REMOVE' */
 
 const Plugin = () => {
 	const [easingMatrix, setEasingMatrix] = useState([
-		[0.35, 0],
-		[0.65, 1.0],
+		[0.5, 0],
+		[0.5, 1.0],
 	])
 
-	const handleMatrixChange = ({ index, x, y }: any) => {
-		setEasingMatrix((matrix) => {
-			const arr = [...matrix]
-			arr[index] = [x, y]
-			return arr
-		})
+	const handleMatrixChange = (matrix: any) => {
+		setEasingMatrix(matrix)
 	}
 	return (
 		<Container space="medium">
