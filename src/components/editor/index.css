@@ -1,0 +1,66 @@
+/* Editor */
+
+.editor {
+	--thumb-color: rgb(190, 190, 190);
+
+	position: relative;
+	/* Grid */
+	background-image: radial-gradient(rgba(1, 1, 1, 0.2) 1px, transparent 0);
+	background-position: 0px 0px;
+	background-size: 8px 8px;
+	transition: opacity 0.2s;
+	user-select: none;
+}
+
+.editor:hover .path.connector,
+.editor:hover .thumb {
+	opacity: 1;
+}
+
+.thumb {
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	background: var(--thumb-color);
+	border-radius: 100%;
+	opacity: 0;
+	transform: translate(-50%, -50%);
+	transition: opacity 0.2s;
+}
+
+.thumb.dragged {
+	backdrop-filter: none;
+	background: #18a0fb;
+}
+
+.thumb.zeroed {
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.viewbox {
+	overflow: visible;
+	pointer-events: none;
+}
+
+.path {
+	fill: none;
+	stroke-linecap: round;
+	stroke-width: 2px;
+}
+
+.path.connector {
+	opacity: 0;
+	stroke: var(--thumb-color);
+	stroke-width: 2px;
+	transition: opacity 0.2s;
+}
+
+.path.curve {
+	stroke: #18a0fb;
+}
+
+.point {
+	fill: #fafafa;
+	stroke: #000;
+	stroke-width: 0.02;
+}
