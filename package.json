@@ -11,8 +11,10 @@
 	"license": "MIT",
 	"author": "Alexander Widua",
 	"dependencies": {
-		"@create-figma-plugin/ui": "^1.2.2",
-		"@create-figma-plugin/utilities": "^1.2.2",
+		"@create-figma-plugin/ui": "^2.1.3",
+		"@create-figma-plugin/utilities": "^2.1.3",
+		"@react-spring/web": "^9.5.5",
+		"@use-gesture/react": "^10.2.20",
 		"chroma-js": "^2.1.2",
 		"easing-coordinates": "^2.0.2",
 		"preact": "^10.5.14",
@@ -26,9 +28,9 @@
 		"node": ">=14"
 	},
 	"devDependencies": {
-		"@create-figma-plugin/build": "^1.2.2",
-		"@create-figma-plugin/tsconfig": "^1.2.2",
-		"@figma/plugin-typings": "^1",
+		"@create-figma-plugin/build": "^2.1.3",
+		"@create-figma-plugin/tsconfig": "^2.1.3",
+		"@figma/plugin-typings": "^1.53.0",
 		"@types/chroma-js": "^2.1.3",
 		"typescript": "^4"
 	},
@@ -37,8 +39,8 @@
 		"watch": "build-figma-plugin --typecheck --watch"
 	},
 	"figma-plugin": {
-		"id": "907899097995668330",
-		"name": "Easing Gradients",
+		"id": "DEVELOPMENT",
+		"name": "Easing Gradients Dev",
 		"main": "src/main.ts",
 		"ui": "src/ui.tsx",
 		"editorType": [

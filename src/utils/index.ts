@@ -1,8 +1,10 @@
+import { createClassName } from './create-class-name'
 import { gl } from './color'
 import { debounce } from './debounce'
+import { normalize } from './normalize'
 import {
 	isGradientFillWithMultipleStops,
-	interpolateColorStops
+	interpolateColorStops,
 } from './gradient'
 import { nodeIsGeometryMixin, nodeHasGradientFill } from './node'
 import { showDecimals } from './number'
@@ -12,8 +14,10 @@ import { getRandomString, describeCurveInAdjectives } from './string'
 import { handleNotificationFromUI } from './notification'
 
 export {
+	createClassName,
 	gl,
 	debounce,
+	normalize,
 	isGradientFillWithMultipleStops,
 	interpolateColorStops,
 	nodeIsGeometryMixin,
@@ -24,7 +28,7 @@ export {
 	setValueToStorage,
 	getRandomString,
 	describeCurveInAdjectives,
-	handleNotificationFromUI
+	handleNotificationFromUI,
 }
 
 export type { SelectionKey, SelectionKeyMap }
