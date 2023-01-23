@@ -1,58 +1,38 @@
 {
-	"name": "figma-easing-gradients",
-	"version": "2.0.0",
-	"description": "Easing functions for gradient fills in Figma.",
-	"keywords": [
-		"figma-easing-gradients",
-		"figma",
-		"figma-plugin",
-		"figma-plugins"
-	],
-	"license": "MIT",
-	"author": "Alexander Widua",
-	"dependencies": {
-		"@create-figma-plugin/ui": "^1.2.2",
-		"@create-figma-plugin/utilities": "^1.2.2",
-		"chroma-js": "^2.1.2",
-		"easing-coordinates": "^2.0.2",
-		"preact": "^10.5.14",
-		"stylelint-config-idiomatic-order": "^8.1.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/alexwidua/figma-easing-gradients/"
-	},
-	"engines": {
-		"node": ">=14"
-	},
-	"devDependencies": {
-		"@create-figma-plugin/build": "^1.2.2",
-		"@create-figma-plugin/tsconfig": "^1.2.2",
-		"@figma/plugin-typings": "^1",
-		"@types/chroma-js": "^2.1.3",
-		"typescript": "^4"
-	},
-	"scripts": {
-		"build": "build-figma-plugin --typecheck --minify",
-		"watch": "build-figma-plugin --typecheck --watch"
-	},
-	"figma-plugin": {
-		"id": "907899097995668330",
-		"name": "Easing Gradients",
-		"main": "src/main.ts",
-		"ui": "src/ui.tsx",
-		"editorType": [
-			"figma"
-		],
-		"relaunchButtons": {
-			"ReapplyEasing": {
-				"name": "Re-apply gradient easing",
-				"main": "src/main.ts",
-				"ui": "src/ui.tsx"
-			}
-		}
-	},
-	"stylelint": {
-		"extends": "stylelint-config-idiomatic-order"
-	}
+    "name": "figma-plugin-vite",
+    "description": "Figma plugin template using Vite, Esbuild and Typescript.",
+    "author": "Alex Widua",
+    "license": "MIT",
+    "private": true,
+    "version": "1.0.1",
+    "scripts": {
+        "dev": "concurrently 'npm:tsc:watch' 'npm:build:watch'",
+        "build": "npm run build:plugin -- --minify && npm run build:ui -- --minify",
+        "tsc:watch": "tsc --watch --preserveWatchOutput",
+        "build:plugin": "esbuild plugin/code.ts --target=es2016 --bundle --outfile=dist/code.js",
+        "build:ui": "npx vite build --emptyOutDir=false",
+        "build:watch": "concurrently 'npm:build:plugin -- --watch' 'npm:build:ui -- --watch'",
+        "format": "prettier --write ."
+    },
+    "dependencies": {
+        "@create-figma-plugin/utilities": "^2.2.0",
+        "@react-spring/web": "^9.6.1",
+        "@use-gesture/react": "^10.2.23",
+        "chroma-js": "^2.4.2",
+        "easing-coordinates": "^2.0.2",
+        "lodash": "^4.17.21",
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0"
+    },
+    "devDependencies": {
+        "@figma/plugin-typings": "^1.54.0",
+        "@types/chroma-js": "^2.1.4",
+        "@types/node": "^18.11.7",
+        "@types/react": "^18.0.0",
+        "@types/react-dom": "^18.0.0",
+        "concurrently": "^7.5.0",
+        "typescript": "^4.6.3",
+        "vite": "^3.1.8",
+        "vite-plugin-singlefile": "^0.12.3"
+    }
 }

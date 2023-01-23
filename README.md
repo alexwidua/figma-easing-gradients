@@ -2,8 +2,6 @@
 
 Allows easing of gradient fills in Figma using custom cubic-bézier or step easing functions.
 
-[<img src="media/button.svg">](https://www.figma.com/community/plugin/907899097995668330/Easing-Gradients)
-
 ## ♻️ Refactor
 
 This is a refactor of the original version of the plugin. Besides a frontend change from Vue to Preact, the plugin has other user-facing changes and QoL updates in its version 2.0.0:

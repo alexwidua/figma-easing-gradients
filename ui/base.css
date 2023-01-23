@@ -1,0 +1,209 @@
+@import url('https://rsms.me/inter/inter.css');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap');
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+:root {
+    /* Figma Theming CSS Variables: https://www.figma.com/plugin-docs/css-variables/ */
+    /* Local variables: */
+    --font-family: 'Inter', 'Helvetica', sans-serif;
+    --font-family-code: 'IBM Plex Mono', SFMono-Regular, Menlo, Monaco, Consolas,
+        'Liberation Mono', 'Courier New', monospace;
+}
+
+@supports (font-variation-settings: normal) {
+    :root {
+        --font-family: 'Inter var', sans-serif;
+    }
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--figma-color-bg);
+    color: var(--figma-color-text);
+    font-family: var(--font-family);
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 16px;
+    list-style: none;
+    text-decoration: none;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+
+div,
+span {
+    cursor: default;
+    user-select: none;
+}
+
+h1,
+h2,
+h3 {
+    margin: 0;
+    font-weight: inherit;
+}
+
+button {
+    color: var(--figma-color-text);
+    padding: 0;
+    border: 0;
+    -webkit-appearance: none;
+    background-color: transparent;
+    font: inherit;
+    outline: 0;
+}
+
+hr {
+    border: 0;
+    margin: 0;
+}
+
+label {
+    display: block;
+}
+
+input,
+textarea {
+    padding: 0;
+    border: 0;
+    margin: 0;
+    -webkit-appearance: none;
+    cursor: default;
+    font: inherit;
+    outline: 0;
+}
+
+svg {
+    display: block;
+}
+
+/* Editor */
+
+.editor {
+    --thumb-color: rgb(190, 190, 190);
+
+    position: relative;
+    /* Grid */
+    background-image: radial-gradient(rgba(1, 1, 1, 0.2) 1px, transparent 0);
+    background-position: 0px 0px;
+    background-size: 13px 13px;
+    transition: opacity 0.2s;
+    user-select: none;
+}
+
+.editor:hover .path.connector,
+.editor:hover .thumb {
+    opacity: 1;
+}
+
+.thumb {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    background: var(--thumb-color);
+    border-radius: 100%;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s;
+}
+
+.thumb.dragged {
+    backdrop-filter: none;
+    background: #18a0fb;
+}
+
+.thumb.zeroed {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.viewbox {
+    overflow: visible;
+    pointer-events: none;
+}
+
+.path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-width: 2px;
+}
+
+.path.connector {
+    opacity: 0;
+    stroke: var(--thumb-color);
+    stroke-width: 2px;
+    transition: opacity 0.2s;
+}
+
+.path.curve {
+    stroke: #18a0fb;
+}
+
+.point {
+    fill: #fafafa;
+    stroke: #000;
+}
+
+.cthumb {
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border: 1px solid #000;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 100%;
+}
+
+/* Gradient stops */
+
+.gradient-container {
+    width: 100%;
+}
+
+.color-swatch-container {
+    width: 100%;
+    height: 16px;
+    position: relative;
+}
+
+.color-swatch {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #eee;
+    transform: translateX(-50%);
+}
+
+.gradient-stops {
+    width: 100%;
+    height: 48px;
+    position: relative;
+}
+
+.gradient-stops .stop-dot {
+    width: 16px;
+    height: 16px;
+    background: transparent;
+    border: 2px solid #fff;
+    position: absolute;
+    top: 50%;
+    transform: translate(0px, -50%);
+    border-radius: 100%;
+}
+
+.gradient-stops .stop-dot.selected {
+    background: #3caffb;
+}
